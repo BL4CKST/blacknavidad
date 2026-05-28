@@ -1,77 +1,76 @@
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
 
-import PrintTicket from "./PrintTicket";
+import {
+  FontAwesomeIcon,
+} from "@fortawesome/react-fontawesome";
+
+import {
+  faPen,
+  faPrint,
+  faCheck,
+  faXmark,
+} from "@fortawesome/free-solid-svg-icons";
 
 export default function ClientModal({
   client,
   onClose,
   updateClientStatus,
   updateClient,
+  printClientTicket,
 }) {
-  const [confirmAction, setConfirmAction] =
-    useState(null);
-
-  const [isEditing, setIsEditing] =
+  const [editing, setEditing] =
     useState(false);
 
-  const [editData, setEditData] =
-    useState({
-      nombre: "",
-      contenido: "",
-      fuentes: "",
-      total: "",
-      adelanto: "",
-      whatsapp: "",
-    });
+  const [formData, setFormData] =
+    useState(client);
 
   useEffect(() => {
-    if (client) {
-      setEditData({
-        nombre: client.nombre || "",
-        contenido:
-          client.contenido || "",
-        fuentes: client.fuentes || "",
-        total: client.total || "",
-        adelanto:
-          client.adelanto || "",
-        whatsapp:
-          client.whatsapp || "",
-      });
-    }
+    setFormData(client);
   }, [client]);
 
   if (!client) return null;
 
-  const debe =
-    Number(editData.total || 0) -
-    Number(editData.adelanto || 0);
-
   const handleChange = (e) => {
-    setEditData({
-      ...editData,
-      [e.target.name]: e.target.value,
+    const {
+      name,
+      value,
+    } = e.target;
+
+    setFormData({
+      ...formData,
+      [name]: value,
     });
   };
 
-  const handleSave = () => {
-    updateClient(client.firebaseId, {
-      ...editData,
-      fuentes: Number(editData.fuentes),
-      total: Number(editData.total),
-      adelanto: Number(editData.adelanto),
-      debe,
-    });
+  const handleSave = async () => {
+    await updateClient(
+      client.firebaseId,
+      formData
+    );
 
-    setIsEditing(false);
+    setEditing(false);
+  };
+
+  const handleStatus = async (
+    estado
+  ) => {
+    await updateClientStatus(
+      client.firebaseId,
+      estado
+    );
+
+    onClose();
   };
 
   const handlePrint = () => {
-    window.print();
+    printClientTicket(client);
   };
 
   return (
     <div
-      onClick={onClose}
       className="
         fixed
         inset-0
@@ -81,37 +80,62 @@ export default function ClientModal({
         justify-center
         bg-black/40
         p-3
-        md:p-4
       "
     >
-      {/* MODAL */}
       <div
-        onClick={(e) => e.stopPropagation()}
         className="
-          relative
-          max-h-[95svh]
           w-full
-          max-w-2xl
+          max-w-lg
           overflow-y-auto
           rounded-3xl
           bg-white
           p-5
           shadow-2xl
-          md:p-6
         "
       >
         {/* HEADER */}
-        <div className="mb-6 flex items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-bold text-slate-400">
+        <div className="mb-5 flex items-start justify-between">
+          <div>
+            <h2 className="text-3xl font-black text-slate-900">
               {client.id}
+            </h2>
+
+            <p className="mt-1 text-sm text-slate-500">
+              Información del pedido
+            </p>
+          </div>
+
+          <button
+            onClick={onClose}
+            className="
+              flex
+              h-10
+              w-10
+              items-center
+              justify-center
+              rounded-xl
+              bg-slate-100
+              text-slate-500
+            "
+          >
+            <FontAwesomeIcon
+              icon={faXmark}
+            />
+          </button>
+        </div>
+
+        {/* BODY */}
+        <div className="space-y-4">
+          <div className="rounded-2xl bg-slate-50 p-4">
+            <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
+              Cliente
             </p>
 
-            {isEditing ? (
+            {editing ? (
               <input
                 type="text"
                 name="nombre"
-                value={editData.nombre}
+                value={formData.nombre}
                 onChange={handleChange}
                 className="
                   mt-2
@@ -120,217 +144,104 @@ export default function ClientModal({
                   border
                   border-slate-200
                   bg-white
-                  px-3
-                  py-2
-                  text-2xl
-                  font-black
-                  text-slate-900
+                  px-4
+                  py-3
                   outline-none
                 "
               />
             ) : (
-              <h2
-                className="
-                  mt-1
-                  break-words
-                  text-2xl
-                  font-black
-                  text-slate-900
-                  md:text-3xl
-                "
-              >
-                {editData.nombre}
-              </h2>
+              <h3 className="mt-2 text-xl font-black text-slate-900">
+                {client.nombre}
+              </h3>
             )}
           </div>
 
-          <button
-            type="button"
-            onClick={() => onClose()}
-            className="
-              shrink-0
-              rounded-2xl
-              border
-              border-slate-200
-              bg-slate-50
-              px-4
-              py-2
-              text-sm
-              font-semibold
-              text-slate-600
-            "
-          >
-            Cerrar
-          </button>
-        </div>
-
-        {/* INFO */}
-        <div className="grid gap-4 md:grid-cols-2">
-          {/* CONTENIDO */}
           <div className="rounded-2xl bg-slate-50 p-4">
-            <p className="mb-2 text-sm text-slate-400">
+            <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
               Contenido
             </p>
 
-            {isEditing ? (
-              <input
-                type="text"
-                name="contenido"
-                value={editData.contenido}
-                onChange={handleChange}
-                className="
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-200
-                  bg-white
-                  px-3
-                  py-2
-                  outline-none
-                "
-              />
-            ) : (
-              <h3 className="text-lg font-bold text-slate-900">
-                {editData.contenido}
-              </h3>
-            )}
+            <p className="mt-2 font-semibold text-slate-700">
+              {client.contenido}
+            </p>
           </div>
 
-          {/* FUENTES */}
-          <div className="rounded-2xl bg-slate-50 p-4">
-            <p className="mb-2 text-sm text-slate-400">
-              Fuentes
-            </p>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="rounded-2xl bg-slate-50 p-4">
+              <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
+                Fuentes
+              </p>
 
-            {isEditing ? (
-              <input
-                type="number"
-                name="fuentes"
-                value={editData.fuentes}
-                onChange={handleChange}
-                className="
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-200
-                  bg-white
-                  px-3
-                  py-2
-                  outline-none
-                "
-              />
-            ) : (
-              <h3 className="text-lg font-bold text-slate-900">
-                {editData.fuentes}
+              <h3 className="mt-2 text-2xl font-black text-slate-900">
+                {client.fuentes}
               </h3>
-            )}
+            </div>
+
+            <div className="rounded-2xl bg-slate-50 p-4">
+              <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
+                Total
+              </p>
+
+              <h3 className="mt-2 text-2xl font-black text-emerald-600">
+                S/{client.total}
+              </h3>
+            </div>
           </div>
 
-          {/* TOTAL */}
-          <div className="rounded-2xl bg-slate-50 p-4">
-            <p className="mb-2 text-sm text-slate-400">
-              Total
-            </p>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="rounded-2xl bg-slate-50 p-4">
+              <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
+                Adelanto
+              </p>
 
-            {isEditing ? (
-              <input
-                type="number"
-                name="total"
-                value={editData.total}
-                onChange={handleChange}
-                className="
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-200
-                  bg-white
-                  px-3
-                  py-2
-                  outline-none
-                "
-              />
-            ) : (
-              <h3 className="text-lg font-bold text-slate-900">
-                S/{editData.total}
+              <h3 className="mt-2 text-2xl font-black text-slate-900">
+                S/{client.adelanto}
               </h3>
-            )}
-          </div>
+            </div>
 
-          {/* ADELANTO */}
-          <div className="rounded-2xl bg-slate-50 p-4">
-            <p className="mb-2 text-sm text-slate-400">
-              Adelanto
-            </p>
+            <div className="rounded-2xl bg-orange-50 p-4">
+              <p className="text-xs font-bold uppercase tracking-wide text-orange-400">
+                Debe
+              </p>
 
-            {isEditing ? (
-              <input
-                type="number"
-                name="adelanto"
-                value={editData.adelanto}
-                onChange={handleChange}
-                className="
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-200
-                  bg-white
-                  px-3
-                  py-2
-                  outline-none
-                "
-              />
-            ) : (
-              <h3 className="text-lg font-bold text-slate-900">
-                S/{editData.adelanto}
+              <h3 className="mt-2 text-3xl font-black text-orange-500">
+                S/{client.debe}
               </h3>
-            )}
-          </div>
-
-          {/* WHATSAPP */}
-          <div className="rounded-2xl bg-slate-50 p-4 md:col-span-2">
-            <p className="mb-2 text-sm text-slate-400">
-              WhatsApp
-            </p>
-
-            {isEditing ? (
-              <input
-                type="text"
-                name="whatsapp"
-                value={editData.whatsapp}
-                onChange={handleChange}
-                className="
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-200
-                  bg-white
-                  px-3
-                  py-2
-                  outline-none
-                "
-              />
-            ) : (
-              <h3 className="text-lg font-bold text-slate-900">
-                {editData.whatsapp}
-              </h3>
-            )}
-          </div>
-
-          {/* DEBE */}
-          <div className="rounded-2xl bg-orange-50 p-4 md:col-span-2">
-            <p className="text-sm text-orange-600">
-              Debe
-            </p>
-
-            <h3 className="mt-1 text-3xl font-black text-orange-600">
-              S/{debe}
-            </h3>
+            </div>
           </div>
         </div>
 
-        {/* BOTONES */}
-        <div className="mt-6 flex flex-col gap-3 md:flex-row">
-          {/* IMPRIMIR */}
+        {/* BUTTONS */}
+        <div className="mt-6 flex flex-wrap gap-3">
+          <button
+            onClick={() => {
+              if (editing) {
+                handleSave();
+              } else {
+                setEditing(true);
+              }
+            }}
+            className="
+              flex-1
+              rounded-2xl
+              bg-blue-600
+              px-5
+              py-4
+              text-sm
+              font-bold
+              text-white
+            "
+          >
+            <FontAwesomeIcon
+              icon={faPen}
+              className="mr-2"
+            />
+
+            {editing
+              ? "Guardar"
+              : "Editar"}
+          </button>
+
           <button
             onClick={handlePrint}
             className="
@@ -339,197 +250,74 @@ export default function ClientModal({
               bg-slate-900
               px-5
               py-4
+              text-sm
               font-bold
               text-white
             "
           >
+            <FontAwesomeIcon
+              icon={faPrint}
+              className="mr-2"
+            />
+
             Imprimir
           </button>
 
-          {/* EDITAR */}
-          {client.estado === "espera" && (
-            <>
-              {!isEditing ? (
-                <button
-                  onClick={() =>
-                    setIsEditing(true)
-                  }
-                  className="
-                    flex-1
-                    rounded-2xl
-                    bg-blue-600
-                    px-5
-                    py-4
-                    font-bold
-                    text-white
-                  "
-                >
-                  Editar
-                </button>
-              ) : (
-                <button
-                  onClick={handleSave}
-                  className="
-                    flex-1
-                    rounded-2xl
-                    bg-emerald-600
-                    px-5
-                    py-4
-                    font-bold
-                    text-white
-                  "
-                >
-                  Guardar
-                </button>
-              )}
-            </>
-          )}
-
-          {/* MARCAR LISTO */}
-          {client.estado === "espera" && (
+          {client.estado ===
+            "espera" && (
             <button
               onClick={() =>
-                setConfirmAction("listo")
-              }
-              className="
-                flex-1
-                rounded-2xl
-                bg-green-600
-                px-5
-                py-4
-                font-bold
-                text-white
-              "
-            >
-              Marcar Listo
-            </button>
-          )}
-
-          {/* ENTREGADO */}
-          {client.estado === "listo" && (
-            <button
-              onClick={() =>
-                setConfirmAction(
-                  "atendido"
+                handleStatus(
+                  "listo"
                 )
               }
               className="
-                flex-1
+                w-full
                 rounded-2xl
-                bg-red-600
+                bg-emerald-500
                 px-5
                 py-4
+                text-sm
                 font-bold
                 text-white
               "
             >
-              Entregado
+              <FontAwesomeIcon
+                icon={faCheck}
+                className="mr-2"
+              />
+
+              Marcar listo
             </button>
           )}
-        </div>
 
-        {/* CONFIRMACION */}
-        {confirmAction && (
-          <div
-            className="
-              absolute
-              inset-0
-              flex
-              items-center
-              justify-center
-              rounded-3xl
-              bg-black/20
-              p-4
-            "
-          >
-            <div
+          {client.estado ===
+            "listo" && (
+            <button
+              onClick={() =>
+                handleStatus(
+                  "entregado"
+                )
+              }
               className="
                 w-full
-                max-w-md
-                rounded-3xl
-                bg-white
-                p-6
-                shadow-2xl
+                rounded-2xl
+                bg-orange-500
+                px-5
+                py-4
+                text-sm
+                font-bold
+                text-white
               "
             >
-              <h3 className="text-2xl font-black text-slate-900">
-                Confirmación
-              </h3>
+              <FontAwesomeIcon
+                icon={faCheck}
+                className="mr-2"
+              />
 
-              <p className="mt-3 text-slate-600">
-                {confirmAction ===
-                "listo"
-                  ? "¿Está seguro de marcar este pedido como LISTO?"
-                  : "¿Confirmar entrega del pedido?"}
-              </p>
-
-              <div className="mt-6 flex gap-3">
-                <button
-                  onClick={() =>
-                    setConfirmAction(
-                      null
-                    )
-                  }
-                  className="
-                    flex-1
-                    rounded-2xl
-                    border
-                    border-slate-200
-                    bg-slate-100
-                    px-5
-                    py-3
-                    font-bold
-                    text-slate-700
-                  "
-                >
-                  Cancelar
-                </button>
-
-                <button
-                  onClick={() => {
-                    updateClientStatus(
-                      client.firebaseId,
-                      confirmAction
-                    );
-
-                    setConfirmAction(
-                      null
-                    );
-
-                    onClose();
-                  }}
-                  className={`
-                    flex-1
-                    rounded-2xl
-                    px-5
-                    py-3
-                    font-bold
-                    text-white
-
-                    ${
-                      confirmAction ===
-                      "listo"
-                        ? "bg-green-600"
-                        : "bg-red-600"
-                    }
-                  `}
-                >
-                  Confirmar
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* TICKET SOLO PARA IMPRIMIR */}
-        <div className="hidden print:block">
-          <PrintTicket
-            client={{
-              ...client,
-              ...editData,
-              debe,
-            }}
-          />
+              Marcar entregado
+            </button>
+          )}
         </div>
       </div>
     </div>

@@ -1,6 +1,11 @@
 import { useMemo, useState } from "react";
 
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import ClientCard from "../components/ClientCard";
+import ClientModal from "../components/ClientModal";
+
+import {
+  FontAwesomeIcon,
+} from "@fortawesome/react-fontawesome";
 
 import {
   faHourglassHalf,
@@ -8,196 +13,329 @@ import {
   faCircleCheck,
 } from "@fortawesome/free-solid-svg-icons";
 
-import ClientCard from "../components/ClientCard";
-import ClientModal from "../components/ClientModal";
-
 export default function Home({
   clients,
   updateClientStatus,
   updateClient,
+  printClientTicket,
 }) {
-  const [selectedClient, setSelectedClient] =
-    useState(null);
-
   const [search, setSearch] =
     useState("");
 
-  // FILTRAR
-  const filteredClients = useMemo(() => {
-    return clients.filter((client) => {
-      const term =
-        search.toLowerCase();
+  const [selectedClient, setSelectedClient] =
+    useState(null);
 
-      return (
-        client.nombre
-          .toLowerCase()
-          .includes(term) ||
-        client.id
-          .toLowerCase()
-          .includes(term)
+  const filteredClients =
+    useMemo(() => {
+      return clients.filter(
+        (client) => {
+          const text = `
+            ${client.id}
+            ${client.nombre}
+          `.toLowerCase();
+
+          return text.includes(
+            search.toLowerCase()
+          );
+        }
       );
-    });
-  }, [clients, search]);
+    }, [clients, search]);
 
-  // ESTADOS
-  const esperaClients =
+  const waiting =
     filteredClients.filter(
       (client) =>
         client.estado === "espera"
     );
 
-  const listoClients =
+  const ready =
     filteredClients.filter(
       (client) =>
         client.estado === "listo"
     );
 
-  const atendidoClients =
+  const delivered =
     filteredClients.filter(
       (client) =>
-        client.estado === "atendido"
+        client.estado ===
+        "entregado"
     );
 
   return (
     <>
-      {/* HEADER */}
-      <div className="mb-6">
-        <h2 className="text-4xl font-black tracking-tight text-slate-900">
-          INICIO
-        </h2>
+      <div>
+        {/* HEADER */}
+        <div className="mb-6">
+          <h1 className="text-4xl font-black text-slate-950">
+            Dashboard
+          </h1>
 
-        <p className="mt-1 text-sm font-medium text-slate-600">
-          Aqui encontraras el estado actual de los clientes
-        </p>
-      </div>
+          <p className="mt-2 text-slate-500">
+            Gestión premium de pedidos
+            navideños
+          </p>
+        </div>
 
-      {/* BUSCADOR */}
-      <div className="mb-6">
-        <input
-          type="text"
-          value={search}
-          onChange={(e) =>
-            setSearch(e.target.value)
-          }
-          placeholder="Buscar por ID o nombre..."
+        {/* SEARCH */}
+        <div className="mb-6">
+          <input
+            type="text"
+            placeholder="Buscar por ID o nombre..."
+            value={search}
+            onChange={(e) =>
+              setSearch(
+                e.target.value
+              )
+            }
+            className="
+              w-full
+              rounded-3xl
+              border
+              border-slate-300
+              bg-white
+              px-6
+              py-4
+              text-sm
+              font-medium
+              outline-none
+            "
+          />
+        </div>
+
+        {/* COLUMNS */}
+        <div
           className="
-            w-full
-            rounded-2xl
-            border
-            border-slate-300
-            bg-[#f8fafc]
-            px-5
-            py-4
-            text-sm
-            font-medium
-            text-slate-900
-            outline-none
-            transition-all
-            duration-200
-            placeholder:text-slate-400
-            focus:border-cyan-400
+            grid
+            gap-5
+            xl:grid-cols-3
           "
-        />
-      </div>
+        >
+          {/* ESPERA */}
+          <div
+            className="
+              rounded-3xl
+              border
+              border-slate-300
+              bg-[#cfd5dc]
+              p-4
+            "
+          >
+            {/* TITLE */}
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <FontAwesomeIcon
+                  icon={faHourglassHalf}
+                  className="
+                    text-lg
+                    text-cyan-700
+                  "
+                />
 
-      {/* COLUMNAS */}
-      <div className="grid gap-4 md:grid-cols-3">
-        {/* ESPERA */}
-        <div className="rounded-[28px] border border-slate-300 bg-[#dbe3ec] p-4">
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="flex items-center gap-2 text-lg font-black text-cyan-700">
-              <FontAwesomeIcon
-                icon={faHourglassHalf}
-              />
-              EN ESPERA
-            </h3>
+                <h2
+                  className="
+                    text-2xl
+                    font-black
+                    text-cyan-700
+                  "
+                >
+                  EN ESPERA
+                </h2>
+              </div>
 
-            <span className="rounded-full bg-cyan-100 px-3 py-1 text-xs font-black text-cyan-700">
-              {esperaClients.length}
-            </span>
+              <div
+                className="
+                  flex
+                  h-8
+                  min-w-8
+                  items-center
+                  justify-center
+                  rounded-full
+                  bg-cyan-200
+                  px-2
+                  text-sm
+                  font-black
+                  text-cyan-700
+                "
+              >
+                {waiting.length}
+              </div>
+            </div>
+
+            {/* CARDS */}
+            <div className="space-y-4">
+              {waiting.map(
+                (client) => (
+                  <ClientCard
+                    key={
+                      client.firebaseId
+                    }
+                    client={client}
+                    onClick={() =>
+                      setSelectedClient(
+                        client
+                      )
+                    }
+                  />
+                )
+              )}
+            </div>
           </div>
 
-          <div className="space-y-3">
-            {esperaClients.map((client) => (
-              <ClientCard
-                key={client.id}
-                client={client}
-                onClick={() =>
-                  setSelectedClient(client)
-                }
-              />
-            ))}
+          {/* LISTO */}
+          <div
+            className="
+              rounded-3xl
+              border
+              border-slate-300
+              bg-[#cfd5dc]
+              p-4
+            "
+          >
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <FontAwesomeIcon
+                  icon={faFire}
+                  className="
+                    text-lg
+                    text-emerald-700
+                  "
+                />
+
+                <h2
+                  className="
+                    text-2xl
+                    font-black
+                    text-emerald-700
+                  "
+                >
+                  LISTO
+                </h2>
+              </div>
+
+              <div
+                className="
+                  flex
+                  h-8
+                  min-w-8
+                  items-center
+                  justify-center
+                  rounded-full
+                  bg-emerald-200
+                  px-2
+                  text-sm
+                  font-black
+                  text-emerald-700
+                "
+              >
+                {ready.length}
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              {ready.map(
+                (client) => (
+                  <ClientCard
+                    key={
+                      client.firebaseId
+                    }
+                    client={client}
+                    onClick={() =>
+                      setSelectedClient(
+                        client
+                      )
+                    }
+                  />
+                )
+              )}
+            </div>
           </div>
-        </div>
 
-        {/* LISTO */}
-        <div className="rounded-[28px] border border-slate-300 bg-[#dbe3ec] p-4">
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="flex items-center gap-2 text-lg font-black text-emerald-700">
-              <FontAwesomeIcon
-                icon={faFire}
-              />
-              LISTO
-            </h3>
+          {/* ENTREGADO */}
+          <div
+            className="
+              rounded-3xl
+              border
+              border-slate-300
+              bg-[#cfd5dc]
+              p-4
+            "
+          >
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <FontAwesomeIcon
+                  icon={faCircleCheck}
+                  className="
+                    text-lg
+                    text-orange-700
+                  "
+                />
 
-            <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-700">
-              {listoClients.length}
-            </span>
-          </div>
+                <h2
+                  className="
+                    text-2xl
+                    font-black
+                    text-orange-700
+                  "
+                >
+                  ATENDIDO
+                </h2>
+              </div>
 
-          <div className="space-y-3">
-            {listoClients.map((client) => (
-              <ClientCard
-                key={client.id}
-                client={client}
-                onClick={() =>
-                  setSelectedClient(client)
-                }
-              />
-            ))}
-          </div>
-        </div>
+              <div
+                className="
+                  flex
+                  h-8
+                  min-w-8
+                  items-center
+                  justify-center
+                  rounded-full
+                  bg-orange-200
+                  px-2
+                  text-sm
+                  font-black
+                  text-orange-700
+                "
+              >
+                {delivered.length}
+              </div>
+            </div>
 
-        {/* ATENDIDO */}
-        <div className="rounded-[28px] border border-slate-300 bg-[#dbe3ec] p-4">
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="flex items-center gap-2 text-lg font-black text-orange-700">
-              <FontAwesomeIcon
-                icon={faCircleCheck}
-              />
-              ATENDIDO
-            </h3>
-
-            <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-black text-orange-700">
-              {atendidoClients.length}
-            </span>
-          </div>
-
-          <div className="space-y-3">
-            {atendidoClients.map((client) => (
-              <ClientCard
-                key={client.id}
-                client={client}
-                onClick={() =>
-                  setSelectedClient(client)
-                }
-              />
-            ))}
+            <div className="space-y-4">
+              {delivered.map(
+                (client) => (
+                  <ClientCard
+                    key={
+                      client.firebaseId
+                    }
+                    client={client}
+                    onClick={() =>
+                      setSelectedClient(
+                        client
+                      )
+                    }
+                  />
+                )
+              )}
+            </div>
           </div>
         </div>
       </div>
 
       {/* MODAL */}
-      <ClientModal
-        client={selectedClient}
-        onClose={() =>
-          setSelectedClient(null)
-        }
-        updateClientStatus={
-          updateClientStatus
-        }
-        updateClient={updateClient}
-      />
+      {selectedClient && (
+        <ClientModal
+          client={selectedClient}
+          onClose={() =>
+            setSelectedClient(null)
+          }
+          updateClientStatus={
+            updateClientStatus
+          }
+          updateClient={updateClient}
+          printClientTicket={
+            printClientTicket
+          }
+        />
+      )}
     </>
   );
 }
