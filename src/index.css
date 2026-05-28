@@ -1,0 +1,94 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100svh;
+
+  background:
+  radial-gradient(
+    circle at top,
+    rgba(59, 130, 246, 0.08),
+    transparent 30%
+  ),
+  radial-gradient(
+    circle at bottom,
+    rgba(16, 185, 129, 0.06),
+    transparent 30%
+  ),
+  #eef2f7;
+
+  color: #111827;
+
+  font-family:
+    Inter,
+    system-ui,
+    sans-serif;
+
+  overflow-x: hidden;
+
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+@media print {
+  @page {
+    size: 80mm auto;
+    margin: 0;
+  }
+
+  html,
+  body {
+    width: 80mm;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    background: white !important;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  .print-ticket,
+  .print-ticket * {
+    visibility: visible !important;
+  }
+
+  .print-ticket {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 80mm;
+    overflow: hidden;
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+  }
+
+  #ticket-print {
+    width: 80mm;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+  }
+}
