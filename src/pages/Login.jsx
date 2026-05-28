@@ -63,17 +63,7 @@ export default function Login({
       {/* BACKGROUND */}
       <div className="absolute inset-0 overflow-hidden">
         {/* TOP GLOW */}
-        <div
-          className="
-            absolute
-            left-[-120px]
-            top-[-120px]
-            h-[320px]
-            w-[320px]
-            rounded-full
-            bg-cyan-500/10
-          "
-        />
+        
 
         {/* BOTTOM GLOW */}
         <div
@@ -84,24 +74,12 @@ export default function Login({
             h-[420px]
             w-[420px]
             rounded-full
-            bg-violet-500/10
+            bg-green-500/10
           "
         />
 
         {/* CENTER LIGHT */}
-        <div
-          className="
-            absolute
-            left-1/2
-            top-1/2
-            h-[500px]
-            w-[500px]
-            -translate-x-1/2
-            -translate-y-1/2
-            rounded-full
-            bg-cyan-400/5
-          "
-        />
+        
       </div>
 
       {/* CONTENT */}
@@ -168,7 +146,7 @@ export default function Login({
                 h-80
                 w-80
                 rounded-full
-                bg-violet-500/10
+                bg-green-500/10
               "
             />
 
