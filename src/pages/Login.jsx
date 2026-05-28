@@ -157,13 +157,13 @@ export default function Login({
                   inline-flex
                   rounded-2xl
                   border
-                  border-cyan-400/20
-                  bg-cyan-400/10
+                  border-green-400/20
+                  bg-green-400/10
                   px-4
                   py-2
                   text-sm
                   font-semibold
-                  text-cyan-300
+                  text-green-300
                 "
               >
                 Creado por BLACK SALAS
