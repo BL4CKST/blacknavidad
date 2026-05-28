@@ -41,6 +41,7 @@ export const createClient = async (
 ) => {
   await addDoc(clientsRef, {
     ...client,
+    fuentesListas: 0,
     createdAt: serverTimestamp(),
   });
 };
@@ -72,6 +73,30 @@ export const updateClientState =
     );
 
     await updateDoc(clientDoc, {
+      estado,
+    });
+  };
+
+// ACTUALIZAR FUENTES
+export const updateFuentes =
+  async (
+    firebaseId,
+    fuentesListas,
+    totalFuentes
+  ) => {
+    const clientDoc = doc(
+      db,
+      "clients",
+      firebaseId
+    );
+
+    const estado =
+      fuentesListas >= totalFuentes
+        ? "listo"
+        : "espera";
+
+    await updateDoc(clientDoc, {
+      fuentesListas,
       estado,
     });
   };

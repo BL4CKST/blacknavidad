@@ -8,7 +8,9 @@ export default function ClientCard({
   client,
   onClick,
 }) {
-  const sendWhatsApp = () => {
+  const sendWhatsApp = (e) => {
+    e.stopPropagation();
+
     const message =
 `Hola ${client.nombre};
 
@@ -36,69 +38,154 @@ Gracias por su preferencia.
     );
   };
 
+  // ESTILOS
+  const styles = {
+    espera: {
+      id:
+        "text-cyan-700",
+
+      shadow:
+        "shadow-cyan-100",
+    },
+
+    listo: {
+      id:
+        "text-emerald-700",
+
+      shadow:
+        "shadow-emerald-100",
+    },
+
+    atendido: {
+      id:
+        "text-orange-700",
+
+      shadow:
+        "shadow-orange-100",
+    },
+  };
+
+  const current =
+    styles[client.estado];
+
   return (
     <div
-    onClick={onClick}
-      className="
+      onClick={onClick}
+      className={`
+        relative
         cursor-pointer
-        rounded-2xl
+        overflow-hidden
+        rounded-xl
         border
-        border-slate-200
+        border-slate-100
         bg-white
-        p-3
+        px-3
+        py-2.5
         shadow-sm
+        ${current.shadow}
         transition-all
         duration-300
         hover:-translate-y-0.5
-      "
+      `}
     >
-      {/* TOP */}
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-[11px] font-bold text-slate-400">
-            {client.id}
-          </p>
+      {/* LINEA IZQUIERDA */}
+      <div
+        className={`
+          absolute
+          left-0
+          top-0
+          h-full
+          w-[4px]
 
-          <h3 className="mt-0.5 text-base font-black text-slate-900">
-            {client.nombre}
-          </h3>
-        </div>
+          ${
+            client.estado ===
+            "espera"
+              ? "bg-cyan-500"
+              : client.estado ===
+                "listo"
+              ? "bg-emerald-500"
+              : "bg-orange-500"
+          }
+        `}
+      />
 
+      {/* WHATSAPP SOLO LISTO */}
+      {client.estado ===
+        "listo" && (
         <button
           onClick={sendWhatsApp}
           className="
+            absolute
+            right-2
+            top-2
             flex
-            h-9
-            w-9
+            h-7
+            w-7
             items-center
             justify-center
-            rounded-xl
-            bg-green-100
-            text-sm
-            text-green-600
+            rounded-lg
+            bg-green-50
+            text-[12px]
+            text-green-500
             transition-all
             duration-300
             hover:scale-105
           "
         >
-          <FontAwesomeIcon icon={faWhatsapp} />
+          <FontAwesomeIcon
+            icon={faWhatsapp}
+          />
         </button>
-      </div>
+      )}
 
-      {/* INFO */}
-      <div className="mt-3">
-        <p className="text-sm font-medium text-slate-700">
-          {client.contenido}
-        </p>
+      {/* CONTENIDO */}
+      <div className="pl-2">
+        {/* ID */}
+        <div className="text-center">
+          <h2
+            className={`
+              text-[34px]
+              font-black
+              leading-none
+              tracking-tight
+              ${current.id}
+            `}
+          >
+            {client.id}
+          </h2>
 
-        <div className="mt-1 flex items-center justify-between">
-          <span className="text-xs text-slate-400">
-            {client.fuentes} fuentes
+          <p className="mt-0.5 truncate text-[13px] font-bold text-slate-700">
+            {client.nombre}
+          </p>
+        </div>
+
+        {/* FOOTER */}
+        <div
+          className="
+            mt-2
+            flex
+            items-center
+            justify-center
+            gap-2
+            text-[11px]
+            font-bold
+          "
+        >
+          <span className="text-emerald-600">
+            Total:
           </span>
 
-          <h4 className="text-xl font-black text-slate-900">
+          <span className="text-emerald-600">
             S/{client.total}
-          </h4>
+          </span>
+
+          <span className="text-slate-300">
+            •
+          </span>
+
+          <span className="text-orange-500">
+            {client.fuentes} fuentes
+          </span>
         </div>
       </div>
     </div>

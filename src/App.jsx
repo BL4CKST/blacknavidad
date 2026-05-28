@@ -13,6 +13,7 @@ import Sidebar from "./layout/Sidebar";
 import Home from "./pages/Home";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
+import InputSources from "./pages/InputSources";
 
 import PrintTicket from "./components/PrintTicket";
 
@@ -23,6 +24,7 @@ import {
   editClient,
   listenClients,
   updateClientState,
+  updateFuentes as updateFuentesFirestore,
 } from "./firebase/clients";
 
 export default function App() {
@@ -71,8 +73,8 @@ export default function App() {
   // LOADING
   if (loading) {
     return (
-      <main className="flex min-h-[100svh] items-center justify-center bg-[#eef2f7]">
-        <div className="text-lg font-bold text-slate-600">
+      <main className="flex min-h-[100svh] items-center justify-center bg-[#eef4fb]">
+        <div className="text-lg font-bold text-slate-900">
           Cargando...
         </div>
       </main>
@@ -96,13 +98,13 @@ export default function App() {
   ) => {
     await createClient(newClient);
 
-    // GUARDAR PARA IMPRIMIR
+    // IMPRIMIR
     setPrintClient(newClient);
 
-    // IR A HOME
+    // HOME
     setPage("home");
 
-    // IMPRIMIR
+    // PRINT
     setTimeout(() => {
       window.print();
     }, 500);
@@ -131,6 +133,20 @@ export default function App() {
     );
   };
 
+  // FUENTES
+  const updateFuentes =
+    async (
+      firebaseId,
+      fuentesListas,
+      totalFuentes
+    ) => {
+      await updateFuentesFirestore(
+        firebaseId,
+        fuentesListas,
+        totalFuentes
+      );
+    };
+
   // LOGOUT
   const handleLogout =
     async () => {
@@ -139,7 +155,7 @@ export default function App() {
 
   return (
     <>
-      <main className="min-h-[100svh] bg-[#eef2f7] p-5">
+      <main className="min-h-[100svh] bg-[#eef4fb] p-3 md:p-5">
         <div
           className="
             mx-auto
@@ -159,14 +175,26 @@ export default function App() {
           />
 
           {/* CONTENT */}
-          <section className="relative rounded-3xl border border-slate-200 bg-white/90 p-5 shadow-sm">
+          <section
+            className="
+              relative
+              rounded-3xl
+              border
+              border-[#dbe7f5]
+              bg-white
+              p-4
+              shadow-[0_10px_40px_rgba(15,23,42,0.06)]
+              md:p-5
+            "
+          >
             {/* LOGOUT */}
             <button
               onClick={handleLogout}
               className="
                 absolute
-                right-5
-                top-5
+                right-4
+                top-4
+                z-20
                 rounded-2xl
                 bg-red-500
                 px-4
@@ -202,11 +230,21 @@ export default function App() {
                 addClient={addClient}
               />
             )}
+
+            {/* FUENTES */}
+            {page === "fuentes" && (
+              <InputSources
+                clients={clients}
+                updateFuentes={
+                  updateFuentes
+                }
+              />
+            )}
           </section>
         </div>
       </main>
 
-      {/* PRINT TICKET */}
+      {/* PRINT */}
       {printClient && (
         <div className="print-ticket hidden print:block">
           <PrintTicket
