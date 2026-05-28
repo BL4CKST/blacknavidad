@@ -72,7 +72,7 @@ export default function RegisterClient({
       {/* HEADER */}
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-black text-slate-900">
+          <h2 className="text-2xl font-black text-slate-900">
             Registar clientes
           </h2>
 

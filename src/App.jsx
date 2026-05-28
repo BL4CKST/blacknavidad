@@ -139,7 +139,7 @@ export default function App() {
 
   return (
     <>
-      <main className="min-h-[100svh] bg-transparent p-5">
+      <main className="min-h-[100svh] bg-[#eef2f7] p-5">
         <div
           className="
             mx-auto
