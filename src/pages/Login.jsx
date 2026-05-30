@@ -118,7 +118,7 @@ export default function Login({
                 </h1>
 
               <p className="mt-3 text-sm leading-6 text-slate-600">
-                  Gestión premium de pedidos navideños.
+                  Panel exclusivo para administradores
                 </p>
               </div>
 

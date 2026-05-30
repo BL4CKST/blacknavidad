@@ -300,43 +300,123 @@ export default function App() {
 
   return (
     <main className="min-h-[100svh] bg-[#dfe7f1] p-3 md:p-5">
-      <div className="mx-auto grid max-w-[1600px] gap-5 md:grid-cols-[280px_1fr]">
+      <div className="mx-auto max-w-[1600px]">
+        <div ref={menuRef} className="relative z-30 mb-5">
+          <header className="flex items-center justify-between gap-3 rounded-[28px] border border-white/80 bg-white/85 px-4 py-3 shadow-[0_18px_60px_rgba(15,23,42,0.10)] backdrop-blur-2xl">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-sm font-black text-white shadow-lg shadow-slate-900/20">
+                IM
+              </div>
+
+              <div className="min-w-0 leading-none">
+                <p className="truncate text-[12px] font-black uppercase tracking-[0.28em] text-slate-400">
+                  Inv. Moisés
+                </p>
+                <p className="mt-1 truncate text-sm font-semibold text-slate-700">
+                  Panel administrador
+                </p>
+              </div>
+            </div>
+
+            <div className="relative">
+              <button
+                onClick={() => setUserMenu(!userMenu)}
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:shadow-md sm:px-4"
+                aria-label="Abrir menú de usuario"
+                aria-expanded={userMenu}
+              >
+                <FontAwesomeIcon icon={faUser} className="text-slate-700" />
+                <span className="hidden sm:inline">Cuenta</span>
+                <FontAwesomeIcon
+                  icon={faChevronDown}
+                  className={`text-xs text-slate-400 transition ${userMenu ? "rotate-180" : ""}`}
+                />
+              </button>
+
+              {userMenu && (
+                <div className="absolute right-0 mt-3 w-[min(18rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_22px_60px_rgba(15,23,42,0.18)]">
+                  <div className="border-b border-slate-100 p-4">
+                    <p className="text-sm font-black text-slate-900">INV. MOISES</p>
+                    <p className="text-xs font-semibold text-slate-500">
+                      Sucursal Principal
+                    </p>
+                    <p className="mt-3 break-all rounded-xl bg-slate-50 px-3 py-2 text-xs font-medium text-slate-500">
+                      {currentUser?.email || "Sin correo registrado"}
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={handleLogout}
+                    className="flex w-full items-center gap-3 px-4 py-4 text-sm font-bold text-red-500 transition hover:bg-red-50"
+                  >
+                    <FontAwesomeIcon icon={faRightFromBracket} />
+                    Cerrar sesión
+                  </button>
+                </div>
+              )}
+            </div>
+          </header>
+        </div>
+
+        <div className="grid gap-5 md:grid-cols-[280px_1fr]">
         <Sidebar page={page} setPage={setPage} handleLogout={handleLogout} />
 
         <section className="relative rounded-3xl border border-[#cfd8e3] bg-[#f3f7fb] p-4 md:p-5">
-          <div ref={menuRef} className="absolute right-4 top-4 z-30">
-            <button
-              onClick={() => setUserMenu(!userMenu)}
-              className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-2"
-            >
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-500 text-white">
-                <FontAwesomeIcon icon={faUser} />
-              </div>
-
-              <div className="hidden text-left md:block">
-                <p className="text-sm font-black text-slate-900">INV. MOISES</p>
-                <p className="text-xs font-medium text-slate-500">Sucursal Principal</p>
-              </div>
-
-              <FontAwesomeIcon icon={faChevronDown} className="text-xs text-slate-400" />
-            </button>
-
-            {userMenu && (
-              <div className="absolute right-0 mt-3 w-60 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg">
-                <div className="border-b border-slate-100 p-4">
-                  <p className="text-sm font-black text-slate-900">INV. MOISES</p>
-                  <p className="mt-1 text-xs text-slate-500">{currentUser?.email}</p>
+          <div className="hidden">
+            <header className="flex items-center justify-between gap-3 rounded-[28px] border border-white/80 bg-white/85 px-4 py-3 shadow-[0_18px_60px_rgba(15,23,42,0.10)] backdrop-blur-2xl">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-sm font-black text-white shadow-lg shadow-slate-900/20">
+                  IM
                 </div>
 
-                <button
-                  onClick={handleLogout}
-                  className="flex w-full items-center gap-3 px-4 py-4 text-sm font-bold text-red-500"
-                >
-                  <FontAwesomeIcon icon={faRightFromBracket} />
-                  Cerrar sesión
-                </button>
+                <div className="min-w-0 leading-none">
+                  <p className="truncate text-[12px] font-black uppercase tracking-[0.28em] text-slate-400">
+                    Inv. Moisés
+                  </p>
+                  <p className="mt-1 truncate text-sm font-semibold text-slate-700">
+                    Panel administrador
+                  </p>
+                </div>
               </div>
-            )}
+
+              <div className="relative">
+                <button
+                  onClick={() => setUserMenu(!userMenu)}
+                  className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:shadow-md sm:px-4"
+                  aria-label="Abrir menú de usuario"
+                  aria-expanded={userMenu}
+                >
+                  <FontAwesomeIcon icon={faUser} className="text-slate-700" />
+                  <span className="hidden sm:inline">Cuenta</span>
+                  <FontAwesomeIcon
+                    icon={faChevronDown}
+                    className={`text-xs text-slate-400 transition ${userMenu ? "rotate-180" : ""}`}
+                  />
+                </button>
+
+                {userMenu && (
+                  <div className="absolute right-0 mt-3 w-[min(18rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_22px_60px_rgba(15,23,42,0.18)]">
+                    <div className="border-b border-slate-100 p-4">
+                      <p className="text-sm font-black text-slate-900">INV. MOISES</p>
+                      <p className="text-xs font-semibold text-slate-500">
+                        Sucursal Principal
+                      </p>
+                      <p className="mt-3 break-all rounded-xl bg-slate-50 px-3 py-2 text-xs font-medium text-slate-500">
+                        {currentUser?.email || "Sin correo registrado"}
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={handleLogout}
+                      className="flex w-full items-center gap-3 px-4 py-4 text-sm font-bold text-red-500 transition hover:bg-red-50"
+                    >
+                      <FontAwesomeIcon icon={faRightFromBracket} />
+                      Cerrar sesión
+                    </button>
+                  </div>
+                )}
+              </div>
+            </header>
           </div>
 
           {page === "home" && (
@@ -352,6 +432,7 @@ export default function App() {
 
           {page === "fuentes" && <InputSources clients={clients} updateFuentes={updateFuentes} />}
         </section>
+        </div>
       </div>
     </main>
   );

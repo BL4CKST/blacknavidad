@@ -94,7 +94,7 @@ export default function PublicHome({ onLogin }) {
                     Inv. Moisés
                   </p>
                   <p className="mt-1 text-sm font-semibold text-slate-700">
-                    Seguimiento de pedidos
+                    Edicion Navidad 
                   </p>
                 </div>
               </div>
@@ -143,7 +143,7 @@ export default function PublicHome({ onLogin }) {
             </h1>
 
             <p className="mt-3 max-w-1xl text-base leading-5 text-slate-600 sm:text-lg">
-              Ingrese su código de cliente y verifique si su pedido está en
+              Ingrese su código de cliente y verifique si su fuente está en
               el horno, listo para recoger o ya entregado.
             </p>
 
@@ -231,7 +231,7 @@ export default function PublicHome({ onLogin }) {
                     ) : (
                       <>
                         <FontAwesomeIcon icon={faMagnifyingGlass} />
-                        Consultar pedido
+                        Consultar Estado
                         <FontAwesomeIcon icon={faArrowRight} className="text-sm" />
                       </>
                     )}
