@@ -1,16 +1,11 @@
-import {
-  useEffect,
-  useState,
-} from "react";
+import { useEffect, useState } from "react";
+
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import {
-  FontAwesomeIcon,
-} from "@fortawesome/react-fontawesome";
-
-import {
+  faCheck,
   faPen,
   faPrint,
-  faCheck,
   faXmark,
 } from "@fortawesome/free-solid-svg-icons";
 
@@ -21,23 +16,27 @@ export default function ClientModal({
   updateClient,
   printClientTicket,
 }) {
-  const [editing, setEditing] =
-    useState(false);
+  const emptyForm = {
+    nombre: "",
+    contenido: "",
+    fuentes: "",
+    total: "",
+    adelanto: "",
+    whatsapp: "",
+  };
 
-  const [formData, setFormData] =
-    useState(client);
+  const [editing, setEditing] = useState(false);
+  const [formData, setFormData] = useState(client || emptyForm);
 
   useEffect(() => {
-    setFormData(client);
+    setFormData(client || emptyForm);
+    setEditing(false);
   }, [client]);
 
   if (!client) return null;
 
   const handleChange = (e) => {
-    const {
-      name,
-      value,
-    } = e.target;
+    const { name, value } = e.target;
 
     setFormData({
       ...formData,
@@ -46,28 +45,45 @@ export default function ClientModal({
   };
 
   const handleSave = async () => {
-    await updateClient(
-      client.firebaseId,
-      formData
-    );
+    const total = Number(formData.total || 0);
+    const adelanto = Number(formData.adelanto || 0);
+    const fuentes = Number(formData.fuentes || 0);
+
+    await updateClient(client.firebaseId, {
+      ...formData,
+      fuentes,
+      total,
+      adelanto,
+      debe: total - adelanto,
+    });
 
     setEditing(false);
   };
 
-  const handleStatus = async (
-    estado
-  ) => {
-    await updateClientStatus(
-      client.firebaseId,
-      estado
-    );
-
+  const handleStatus = async (estado) => {
+    await updateClientStatus(client.firebaseId, estado);
     onClose();
   };
 
   const handlePrint = () => {
     printClientTicket(client);
   };
+
+  const inputClassName = `
+    mt-1.5
+    w-full
+    rounded-xl
+    border
+    border-slate-200
+    bg-white
+    px-3
+    py-2.5
+    text-sm
+    outline-none
+    focus:border-sky-300
+    focus:ring-4
+    focus:ring-sky-100
+  `;
 
   return (
     <div
@@ -78,29 +94,34 @@ export default function ClientModal({
         flex
         items-center
         justify-center
-        bg-black/40
-        p-3
+        bg-slate-950/35
+        p-2
+        backdrop-blur-sm
+        sm:p-3
       "
     >
       <div
         className="
+          max-h-[calc(100svh-16px)]
           w-full
-          max-w-lg
+          max-w-[430px]
           overflow-y-auto
-          rounded-3xl
+          rounded-[26px]
           bg-white
-          p-5
-          shadow-2xl
+          p-3
+          shadow-[0_30px_100px_rgba(15,23,42,0.25)]
+          sm:max-h-[calc(100svh-24px)]
+          sm:max-w-lg
+          sm:p-5
         "
       >
-        {/* HEADER */}
-        <div className="mb-5 flex items-start justify-between">
-          <div>
-            <h2 className="text-3xl font-black text-slate-900">
+        <div className="mb-3 flex items-start justify-between gap-3 sm:mb-5">
+          <div className="min-w-0">
+            <h2 className="truncate text-2xl font-black text-slate-900 sm:text-3xl">
               {client.id}
             </h2>
 
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-0.5 text-xs font-medium text-slate-500 sm:text-sm">
               Información del pedido
             </p>
           </div>
@@ -109,25 +130,26 @@ export default function ClientModal({
             onClick={onClose}
             className="
               flex
-              h-10
-              w-10
+              h-9
+              w-9
+              shrink-0
               items-center
               justify-center
-              rounded-xl
+              rounded-full
               bg-slate-100
               text-slate-500
+              transition
+              hover:bg-slate-200
             "
+            aria-label="Cerrar modal"
           >
-            <FontAwesomeIcon
-              icon={faXmark}
-            />
+            <FontAwesomeIcon icon={faXmark} />
           </button>
         </div>
 
-        {/* BODY */}
-        <div className="space-y-4">
-          <div className="rounded-2xl bg-slate-50 p-4">
-            <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
+        <div className="space-y-2.5 sm:space-y-3">
+          <div className="rounded-2xl bg-slate-50 p-3 sm:p-4">
+            <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400 sm:text-xs">
               Cliente
             </p>
 
@@ -135,84 +157,133 @@ export default function ClientModal({
               <input
                 type="text"
                 name="nombre"
-                value={formData.nombre}
+                value={formData.nombre || ""}
                 onChange={handleChange}
-                className="
-                  mt-2
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-200
-                  bg-white
-                  px-4
-                  py-3
-                  outline-none
-                "
+                className={inputClassName}
               />
             ) : (
-              <h3 className="mt-2 text-xl font-black text-slate-900">
+              <h3 className="mt-1.5 text-lg font-black text-slate-900 sm:text-xl">
                 {client.nombre}
               </h3>
             )}
           </div>
 
-          <div className="rounded-2xl bg-slate-50 p-4">
-            <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
+          <div className="rounded-2xl bg-slate-50 p-3 sm:p-4">
+            <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400 sm:text-xs">
               Contenido
             </p>
 
-            <p className="mt-2 font-semibold text-slate-700">
-              {client.contenido}
-            </p>
+            {editing ? (
+              <input
+                type="text"
+                name="contenido"
+                value={formData.contenido || ""}
+                onChange={handleChange}
+                className={inputClassName}
+              />
+            ) : (
+              <p className="mt-1.5 text-sm font-black text-slate-900 sm:text-base">
+  {client.contenido}
+</p>
+            )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="rounded-2xl bg-slate-50 p-4">
-              <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
+          <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+            <div className="rounded-2xl bg-slate-50 p-3 sm:p-4">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400 sm:text-xs">
                 Fuentes
               </p>
 
-              <h3 className="mt-2 text-2xl font-black text-slate-900">
-                {client.fuentes}
-              </h3>
+              {editing ? (
+                <input
+                  type="number"
+                  name="fuentes"
+                  value={formData.fuentes || ""}
+                  onChange={handleChange}
+                  className={inputClassName}
+                />
+              ) : (
+                <h3 className="mt-1.5 text-xl font-black text-slate-900 sm:text-2xl">
+                  {client.fuentes}
+                </h3>
+              )}
             </div>
 
-            <div className="rounded-2xl bg-slate-50 p-4">
-              <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
+            <div className="rounded-2xl bg-slate-50 p-3 sm:p-4">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400 sm:text-xs">
                 Total
               </p>
 
-              <h3 className="mt-2 text-2xl font-black text-emerald-600">
-                S/{client.total}
-              </h3>
+              {editing ? (
+                <input
+                  type="number"
+                  name="total"
+                  value={formData.total || ""}
+                  onChange={handleChange}
+                  className={inputClassName}
+                />
+              ) : (
+                <h3 className="mt-1.5 text-xl font-black text-emerald-600 sm:text-2xl">
+                  S/{client.total}
+                </h3>
+              )}
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="rounded-2xl bg-slate-50 p-4">
-              <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
+          <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+            <div className="rounded-2xl bg-slate-50 p-3 sm:p-4">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400 sm:text-xs">
                 Adelanto
               </p>
 
-              <h3 className="mt-2 text-2xl font-black text-slate-900">
-                S/{client.adelanto}
-              </h3>
+              {editing ? (
+                <input
+                  type="number"
+                  name="adelanto"
+                  value={formData.adelanto || ""}
+                  onChange={handleChange}
+                  className={inputClassName}
+                />
+              ) : (
+                <h3 className="mt-1.5 text-xl font-black text-slate-900 sm:text-2xl">
+                  S/{client.adelanto}
+                </h3>
+              )}
             </div>
 
-            <div className="rounded-2xl bg-orange-50 p-4">
-              <p className="text-xs font-bold uppercase tracking-wide text-orange-400">
+            <div className="rounded-2xl bg-orange-50 p-3 sm:p-4">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-orange-500 sm:text-xs">
                 Debe
               </p>
 
-              <h3 className="mt-2 text-3xl font-black text-orange-500">
-                S/{client.debe}
+              <h3 className="mt-1.5 text-2xl font-black text-orange-600 sm:text-3xl">
+                S/{Number(formData.total || 0) - Number(formData.adelanto || 0)}
               </h3>
             </div>
           </div>
+
+          <div className="rounded-2xl bg-slate-50 p-3 sm:p-4">
+            <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400 sm:text-xs">
+              WhatsApp
+            </p>
+
+            {editing ? (
+              <input
+                type="text"
+                name="whatsapp"
+                value={formData.whatsapp || ""}
+                onChange={handleChange}
+                className={inputClassName}
+              />
+            ) : (
+              <h3 className="mt-1.5 text-base font-black text-slate-900 sm:text-lg">
+                {client.whatsapp}
+              </h3>
+            )}
+          </div>
         </div>
 
-        {/* BUTTONS */}
-        <div className="mt-6 flex flex-wrap gap-3">
+        <div className="mt-3 grid grid-cols-2 gap-2.5 sm:mt-5 sm:gap-3">
           <button
             onClick={() => {
               if (editing) {
@@ -222,99 +293,62 @@ export default function ClientModal({
               }
             }}
             className="
-              flex-1
+              inline-flex
+              items-center
+              justify-center
               rounded-2xl
               bg-blue-600
-              px-5
-              py-4
+              px-4
+              py-3
               text-sm
               font-bold
               text-white
+              sm:py-4
             "
           >
-            <FontAwesomeIcon
-              icon={faPen}
-              className="mr-2"
-            />
-
-            {editing
-              ? "Guardar"
-              : "Editar"}
+            <FontAwesomeIcon icon={faPen} className="mr-2" />
+            {editing ? "Guardar" : "Editar"}
           </button>
 
           <button
             onClick={handlePrint}
             className="
-              flex-1
+              inline-flex
+              items-center
+              justify-center
               rounded-2xl
               bg-slate-900
-              px-5
-              py-4
+              px-4
+              py-3
               text-sm
               font-bold
               text-white
+              sm:py-4
             "
           >
-            <FontAwesomeIcon
-              icon={faPrint}
-              className="mr-2"
-            />
-
+            <FontAwesomeIcon icon={faPrint} className="mr-2" />
             Imprimir
           </button>
 
-          {client.estado ===
-            "espera" && (
+          {client.estado === "listo" && (
             <button
-              onClick={() =>
-                handleStatus(
-                  "listo"
-                )
-              }
+              onClick={() => handleStatus("entregado")}
               className="
-                w-full
-                rounded-2xl
-                bg-emerald-500
-                px-5
-                py-4
-                text-sm
-                font-bold
-                text-white
-              "
-            >
-              <FontAwesomeIcon
-                icon={faCheck}
-                className="mr-2"
-              />
-
-              Marcar listo
-            </button>
-          )}
-
-          {client.estado ===
-            "listo" && (
-            <button
-              onClick={() =>
-                handleStatus(
-                  "entregado"
-                )
-              }
-              className="
-                w-full
+                col-span-2
+                inline-flex
+                items-center
+                justify-center
                 rounded-2xl
                 bg-orange-500
-                px-5
-                py-4
+                px-4
+                py-3
                 text-sm
                 font-bold
                 text-white
+                sm:py-4
               "
             >
-              <FontAwesomeIcon
-                icon={faCheck}
-                className="mr-2"
-              />
-
+              <FontAwesomeIcon icon={faCheck} className="mr-2" />
               Marcar entregado
             </button>
           )}

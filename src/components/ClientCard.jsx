@@ -11,23 +11,36 @@ export default function ClientCard({
   const sendWhatsApp = (e) => {
     e.stopPropagation();
 
-    const message =
-`Hola ${client.nombre};
+    if (!client?.whatsapp) return;
+
+    const message = `Hola ${
+      client?.nombre ?? ""
+    };
 
 Ya puedes venir a recoger lo que mandó a hornear con nosotros.
 
-ID de espera: ${client.id}
+ID de espera: ${
+      client?.id ?? ""
+    }
 
-N. de fuentes: ${client.fuentes}
+N. de fuentes: ${
+      client?.fuentes ?? ""
+    }
 
 Monto total:
-S/${client.total}
+S/${
+      client?.total ?? ""
+    }
 
 Adelanto:
-S/${client.adelanto}
+S/${
+      client?.adelanto ?? ""
+    }
 
 Debe:
-S/${client.debe}
+S/${
+      client?.debe ?? ""
+    }
 
 Gracias por su preferencia.
 ¡Feliz Navidad!`;
@@ -38,35 +51,34 @@ Gracias por su preferencia.
     );
   };
 
-  // ESTILOS
   const styles = {
     espera: {
-      id:
-        "text-cyan-700",
-
-      shadow:
-        "shadow-cyan-100",
+      id: "text-cyan-700",
+      shadow: "shadow-cyan-100",
+      line: "bg-cyan-500",
     },
 
     listo: {
-      id:
-        "text-emerald-700",
-
-      shadow:
-        "shadow-emerald-100",
+      id: "text-emerald-700",
+      shadow: "shadow-emerald-100",
+      line: "bg-emerald-500",
     },
 
     atendido: {
-      id:
-        "text-orange-700",
+      id: "text-orange-700",
+      shadow: "shadow-orange-100",
+      line: "bg-orange-500",
+    },
 
-      shadow:
-        "shadow-orange-100",
+    entregado: {
+      id: "text-orange-700",
+      shadow: "shadow-orange-100",
+      line: "bg-orange-500",
     },
   };
 
   const current =
-    styles[client.estado];
+    styles[client?.estado] ?? styles.espera;
 
   return (
     <div
@@ -88,7 +100,6 @@ Gracias por su preferencia.
         hover:-translate-y-0.5
       `}
     >
-      {/* LINEA IZQUIERDA */}
       <div
         className={`
           absolute
@@ -96,51 +107,39 @@ Gracias por su preferencia.
           top-0
           h-full
           w-[4px]
-
-          ${
-            client.estado ===
-            "espera"
-              ? "bg-cyan-500"
-              : client.estado ===
-                "listo"
-              ? "bg-emerald-500"
-              : "bg-orange-500"
-          }
+          ${current.line}
         `}
       />
 
-      {/* WHATSAPP SOLO LISTO */}
-      {client.estado ===
-        "listo" && (
-        <button
-          onClick={sendWhatsApp}
-          className="
-            absolute
-            right-2
-            top-2
-            flex
-            h-7
-            w-7
-            items-center
-            justify-center
-            rounded-lg
-            bg-green-50
-            text-[12px]
-            text-green-500
-            transition-all
-            duration-300
-            hover:scale-105
-          "
-        >
-          <FontAwesomeIcon
-            icon={faWhatsapp}
-          />
-        </button>
-      )}
+      {client?.estado === "listo" &&
+        client?.whatsapp && (
+          <button
+            onClick={sendWhatsApp}
+            className="
+              absolute
+              right-2
+              top-2
+              flex
+              h-7
+              w-7
+              items-center
+              justify-center
+              rounded-lg
+              bg-green-50
+              text-[12px]
+              text-green-500
+              transition-all
+              duration-300
+              hover:scale-105
+            "
+          >
+            <FontAwesomeIcon
+              icon={faWhatsapp}
+            />
+          </button>
+        )}
 
-      {/* CONTENIDO */}
       <div className="pl-2">
-        {/* ID */}
         <div className="text-center">
           <h2
             className={`
@@ -151,15 +150,14 @@ Gracias por su preferencia.
               ${current.id}
             `}
           >
-            {client.id}
+            {client?.id}
           </h2>
 
           <p className="mt-0.5 truncate text-[13px] font-bold text-slate-700">
-            {client.nombre}
+            {client?.nombre}
           </p>
         </div>
 
-        {/* FOOTER */}
         <div
           className="
             mt-2
@@ -176,7 +174,7 @@ Gracias por su preferencia.
           </span>
 
           <span className="text-emerald-600">
-            S/{client.total}
+            S/{client?.total}
           </span>
 
           <span className="text-slate-300">
@@ -184,7 +182,7 @@ Gracias por su preferencia.
           </span>
 
           <span className="text-orange-500">
-            {client.fuentes} fuentes
+            {client?.fuentes} fuentes
           </span>
         </div>
       </div>

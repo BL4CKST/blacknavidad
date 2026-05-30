@@ -4,12 +4,30 @@ export default function InputSources({
   clients,
   updateFuentes,
 }) {
-  const esperaClients =
+  const sourceClients =
     useMemo(() => {
-      return clients.filter(
-        (client) =>
-          client.estado === "espera"
-      );
+      return clients
+        .filter(
+          (client) =>
+            client.estado ===
+              "espera" ||
+            client.estado ===
+              "listo"
+        )
+        .sort((a, b) => {
+          const aCompleted =
+            (a.fuentesListas ?? 0) >=
+            a.fuentes;
+
+          const bCompleted =
+            (b.fuentesListas ?? 0) >=
+            b.fuentes;
+
+          return (
+            Number(aCompleted) -
+            Number(bCompleted)
+          );
+        });
     }, [clients]);
 
   const [changes, setChanges] =
@@ -53,7 +71,7 @@ export default function InputSources({
 
   const handleSave =
     async () => {
-      for (const client of esperaClients) {
+      for (const client of sourceClients) {
         const value =
           changes[
             client.firebaseId
@@ -71,7 +89,6 @@ export default function InputSources({
       }
 
       setConfirm(false);
-
       setChanges({});
     };
 
@@ -84,13 +101,14 @@ export default function InputSources({
         </h2>
 
         <p className="mt-1 text-sm text-slate-500">
-          Registra las fuentes que salen del horno.
+          Registra las fuentes que salen
+          del horno.
         </p>
       </div>
 
       {/* GRID */}
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-        {esperaClients.map(
+        {sourceClients.map(
           (client) => {
             const listas =
               changes[
@@ -108,15 +126,40 @@ export default function InputSources({
                 key={
                   client.firebaseId
                 }
-                className="
+                className={`
                   rounded-2xl
                   border
-                  border-slate-200
-                  bg-white
                   p-4
                   shadow-sm
-                "
+                  transition-all
+
+                  ${
+                    completed
+                      ? "border-green-300 bg-green-50"
+                      : "border-slate-200 bg-white"
+                  }
+                `}
               >
+                {/* COMPLETADO */}
+                {completed && (
+                  <div
+                    className="
+                      mb-3
+                      inline-flex
+                      items-center
+                      rounded-full
+                      bg-green-100
+                      px-3
+                      py-1
+                      text-xs
+                      font-black
+                      text-green-700
+                    "
+                  >
+                    ✓ COMPLETADO
+                  </div>
+                )}
+
                 {/* TOP */}
                 <div className="flex items-center justify-between">
                   <div>

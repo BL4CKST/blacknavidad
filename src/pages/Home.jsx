@@ -19,72 +19,58 @@ export default function Home({
   updateClient,
   printClientTicket,
 }) {
-  const [search, setSearch] =
-    useState("");
-
+  const [search, setSearch] = useState("");
   const [selectedClient, setSelectedClient] =
     useState(null);
 
-  const filteredClients =
-    useMemo(() => {
-      return clients.filter(
-        (client) => {
-          const text = `
-            ${client.id}
-            ${client.nombre}
-          `.toLowerCase();
+  const filteredClients = useMemo(() => {
+    return clients.filter((client) => {
+      const text = `
+        ${client?.id ?? ""}
+        ${client?.nombre ?? ""}
+      `.toLowerCase();
 
-          return text.includes(
-            search.toLowerCase()
-          );
-        }
+      return text.includes(
+        search.toLowerCase()
       );
-    }, [clients, search]);
+    });
+  }, [clients, search]);
 
-  const waiting =
-    filteredClients.filter(
-      (client) =>
-        client.estado === "espera"
-    );
+  const waiting = filteredClients.filter(
+    (client) => client?.estado === "espera"
+  );
 
-  const ready =
-    filteredClients.filter(
-      (client) =>
-        client.estado === "listo"
-    );
+  const ready = filteredClients.filter(
+    (client) => client?.estado === "listo"
+  );
 
-  const delivered =
-    filteredClients.filter(
-      (client) =>
-        client.estado ===
-        "entregado"
-    );
+  const delivered = filteredClients.filter(
+    (client) =>
+      ["entregado", "atendido"].includes(
+        client?.estado
+      )
+  );
 
   return (
     <>
       <div>
-        {/* HEADER */}
         <div className="mb-6">
           <h1 className="text-4xl font-black text-slate-950">
             Dashboard
           </h1>
 
           <p className="mt-2 text-slate-500">
-            Gestión premium de pedidos
-            navideños
+            Gestión premium de pedidos navideños
           </p>
         </div>
 
-        {/* SEARCH */}
         <div className="mb-6">
           <input
             type="text"
             placeholder="Buscar por ID o nombre..."
             value={search}
             onChange={(e) =>
-              setSearch(
-                e.target.value
-              )
+              setSearch(e.target.value)
             }
             className="
               w-full
@@ -101,15 +87,7 @@ export default function Home({
           />
         </div>
 
-        {/* COLUMNS */}
-        <div
-          className="
-            grid
-            gap-5
-            xl:grid-cols-3
-          "
-        >
-          {/* ESPERA */}
+        <div className="grid gap-5 xl:grid-cols-3">
           <div
             className="
               rounded-3xl
@@ -119,24 +97,14 @@ export default function Home({
               p-4
             "
           >
-            {/* TITLE */}
             <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <FontAwesomeIcon
                   icon={faHourglassHalf}
-                  className="
-                    text-lg
-                    text-cyan-700
-                  "
+                  className="text-lg text-cyan-700"
                 />
 
-                <h2
-                  className="
-                    text-2xl
-                    font-black
-                    text-cyan-700
-                  "
-                >
+                <h2 className="text-2xl font-black text-cyan-700">
                   EN ESPERA
                 </h2>
               </div>
@@ -160,27 +128,19 @@ export default function Home({
               </div>
             </div>
 
-            {/* CARDS */}
             <div className="space-y-4">
-              {waiting.map(
-                (client) => (
-                  <ClientCard
-                    key={
-                      client.firebaseId
-                    }
-                    client={client}
-                    onClick={() =>
-                      setSelectedClient(
-                        client
-                      )
-                    }
-                  />
-                )
-              )}
+              {waiting.map((client) => (
+                <ClientCard
+                  key={client.firebaseId}
+                  client={client}
+                  onClick={() =>
+                    setSelectedClient(client)
+                  }
+                />
+              ))}
             </div>
           </div>
 
-          {/* LISTO */}
           <div
             className="
               rounded-3xl
@@ -194,19 +154,10 @@ export default function Home({
               <div className="flex items-center gap-3">
                 <FontAwesomeIcon
                   icon={faFire}
-                  className="
-                    text-lg
-                    text-emerald-700
-                  "
+                  className="text-lg text-emerald-700"
                 />
 
-                <h2
-                  className="
-                    text-2xl
-                    font-black
-                    text-emerald-700
-                  "
-                >
+                <h2 className="text-2xl font-black text-emerald-700">
                   LISTO
                 </h2>
               </div>
@@ -231,25 +182,18 @@ export default function Home({
             </div>
 
             <div className="space-y-4">
-              {ready.map(
-                (client) => (
-                  <ClientCard
-                    key={
-                      client.firebaseId
-                    }
-                    client={client}
-                    onClick={() =>
-                      setSelectedClient(
-                        client
-                      )
-                    }
-                  />
-                )
-              )}
+              {ready.map((client) => (
+                <ClientCard
+                  key={client.firebaseId}
+                  client={client}
+                  onClick={() =>
+                    setSelectedClient(client)
+                  }
+                />
+              ))}
             </div>
           </div>
 
-          {/* ENTREGADO */}
           <div
             className="
               rounded-3xl
@@ -263,20 +207,11 @@ export default function Home({
               <div className="flex items-center gap-3">
                 <FontAwesomeIcon
                   icon={faCircleCheck}
-                  className="
-                    text-lg
-                    text-orange-700
-                  "
+                  className="text-lg text-orange-700"
                 />
 
-                <h2
-                  className="
-                    text-2xl
-                    font-black
-                    text-orange-700
-                  "
-                >
-                  ATENDIDO
+                <h2 className="text-2xl font-black text-orange-700">
+                  ENTREGADO
                 </h2>
               </div>
 
@@ -300,27 +235,20 @@ export default function Home({
             </div>
 
             <div className="space-y-4">
-              {delivered.map(
-                (client) => (
-                  <ClientCard
-                    key={
-                      client.firebaseId
-                    }
-                    client={client}
-                    onClick={() =>
-                      setSelectedClient(
-                        client
-                      )
-                    }
-                  />
-                )
-              )}
+              {delivered.map((client) => (
+                <ClientCard
+                  key={client.firebaseId}
+                  client={client}
+                  onClick={() =>
+                    setSelectedClient(client)
+                  }
+                />
+              ))}
             </div>
           </div>
         </div>
       </div>
 
-      {/* MODAL */}
       {selectedClient && (
         <ClientModal
           client={selectedClient}
