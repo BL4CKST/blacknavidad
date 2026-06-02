@@ -16,7 +16,13 @@ export default function RegisterClient({
 
   // SIGUIENTE ID
   const nextId = useMemo(() => {
-    return clients.length + 1;
+    const maxId = clients.reduce((max, client) => {
+      const value = Number(String(client?.id || "").replace(/\D/g, ""));
+
+      return Number.isFinite(value) && value > max ? value : max;
+    }, 0);
+
+    return maxId + 1;
   }, [clients]);
 
   const nextCode = `C-${nextId}`;
@@ -68,41 +74,48 @@ export default function RegisterClient({
   };
 
   return (
-<>
+    <div className="w-full max-w-6xl">
       {/* HEADER */}
-      <div className="mb-8 flex items-center justify-between">
+      <div className="mb-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-stretch">
         <div>
-          <h2 className="text-2xl font-black text-slate-900">
+          <h2 className="text-xl font-black text-slate-900 sm:text-2xl">
             REGISTRO
           </h2>
 
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-xs text-slate-500 sm:text-sm">
             Agrega aqui un cliente.
           </p>
         </div>
 
-       
-      </div>
+        <div className="min-w-[132px] rounded-2xl border border-blue-100 bg-blue-50 p-3 sm:min-w-[160px]">
+          <p className="text-xs font-bold text-blue-600">
+            Siguiente ID
+          </p>
 
-      {/* NEXT ID */}
-      <div className="mb-6 rounded-3xl border border-blue-100 bg-blue-50 p-5">
-        <p className="text-sm font-medium text-blue-600">
-          Siguiente ID
-        </p>
+          <h3 className="mt-1 text-2xl font-black text-blue-700 sm:text-3xl">
+            {nextCode}
+          </h3>
+        </div>
 
-        <h3 className="mt-2 text-4xl font-black text-blue-700">
-          {nextCode}
-        </h3>
+        <div className="min-w-[132px] rounded-2xl border border-orange-100 bg-orange-50 p-3 sm:min-w-[160px]">
+          <p className="text-xs font-bold text-orange-700">
+            Falta cancelar
+          </p>
+
+          <h3 className="mt-1 text-2xl font-black text-orange-600 sm:text-3xl">
+            S/ {debe}
+          </h3>
+        </div>
       </div>
 
       {/* FORM */}
       <form
         onSubmit={handleSubmit}
-        className="grid gap-5 md:grid-cols-2"
+        className="grid gap-3 md:grid-cols-2 xl:grid-cols-3"
       >
         {/* NOMBRE */}
         <div>
-          <label className="mb-2 block text-sm font-semibold text-slate-700">
+          <label className="mb-1.5 block text-xs font-bold text-slate-700 sm:text-sm">
             Nombre del cliente
           </label>
 
@@ -115,12 +128,13 @@ export default function RegisterClient({
             placeholder="Juan Pérez"
             className="
               w-full
-              rounded-2xl
+              rounded-xl
               border
               border-slate-200
               bg-slate-50
-              px-4
-              py-3
+              px-3
+              py-2.5
+              text-sm
               outline-none
               transition-all
               duration-300
@@ -134,7 +148,7 @@ export default function RegisterClient({
 
         {/* CONTENIDO */}
         <div>
-          <label className="mb-2 block text-sm font-semibold text-slate-700">
+          <label className="mb-1.5 block text-xs font-bold text-slate-700 sm:text-sm">
             Contenido
           </label>
 
@@ -147,12 +161,13 @@ export default function RegisterClient({
             placeholder="Pollo, Pavo..."
             className="
               w-full
-              rounded-2xl
+              rounded-xl
               border
               border-slate-200
               bg-slate-50
-              px-4
-              py-3
+              px-3
+              py-2.5
+              text-sm
               outline-none
               transition-all
               duration-300
@@ -166,7 +181,7 @@ export default function RegisterClient({
 
         {/* FUENTES */}
         <div>
-          <label className="mb-2 block text-sm font-semibold text-slate-700">
+          <label className="mb-1.5 block text-xs font-bold text-slate-700 sm:text-sm">
             Número de fuentes
           </label>
 
@@ -179,12 +194,13 @@ export default function RegisterClient({
             placeholder="2"
             className="
               w-full
-              rounded-2xl
+              rounded-xl
               border
               border-slate-200
               bg-slate-50
-              px-4
-              py-3
+              px-3
+              py-2.5
+              text-sm
               outline-none
               transition-all
               duration-300
@@ -198,7 +214,7 @@ export default function RegisterClient({
 
         {/* TOTAL */}
         <div>
-          <label className="mb-2 block text-sm font-semibold text-slate-700">
+          <label className="mb-1.5 block text-xs font-bold text-slate-700 sm:text-sm">
             Precio total
           </label>
 
@@ -211,12 +227,13 @@ export default function RegisterClient({
             placeholder="150"
             className="
               w-full
-              rounded-2xl
+              rounded-xl
               border
               border-slate-200
               bg-slate-50
-              px-4
-              py-3
+              px-3
+              py-2.5
+              text-sm
               outline-none
               transition-all
               duration-300
@@ -230,7 +247,7 @@ export default function RegisterClient({
 
         {/* ADELANTO */}
         <div>
-          <label className="mb-2 block text-sm font-semibold text-slate-700">
+          <label className="mb-1.5 block text-xs font-bold text-slate-700 sm:text-sm">
             Adelanto
           </label>
 
@@ -243,12 +260,13 @@ export default function RegisterClient({
             placeholder="50"
             className="
               w-full
-              rounded-2xl
+              rounded-xl
               border
               border-slate-200
               bg-slate-50
-              px-4
-              py-3
+              px-3
+              py-2.5
+              text-sm
               outline-none
               transition-all
               duration-300
@@ -262,7 +280,7 @@ export default function RegisterClient({
 
         {/* WHATSAPP */}
         <div>
-          <label className="mb-2 block text-sm font-semibold text-slate-700">
+          <label className="mb-1.5 block text-xs font-bold text-slate-700 sm:text-sm">
             WhatsApp
           </label>
 
@@ -275,12 +293,13 @@ export default function RegisterClient({
             placeholder="51999999999"
             className="
               w-full
-              rounded-2xl
+              rounded-xl
               border
               border-slate-200
               bg-slate-50
-              px-4
-              py-3
+              px-3
+              py-2.5
+              text-sm
               outline-none
               transition-all
               duration-300
@@ -292,30 +311,22 @@ export default function RegisterClient({
           />
         </div>
 
-        {/* DEBE */}
-        <div className="md:col-span-2">
-          <div className="rounded-3xl border border-orange-100 bg-orange-50 p-5">
-            <p className="text-sm font-medium text-orange-700">
-              Falta cancelar
-            </p>
-
-            <h3 className="mt-2 text-3xl font-black text-orange-600">
-              S/ {debe}
-            </h3>
-          </div>
-        </div>
-
         {/* BOTON */}
-        <div className="md:col-span-2">
+        <div className="md:col-span-2 xl:col-span-3">
           <button
             type="submit"
             className="
+              mx-auto
+              flex
               w-full
-              rounded-3xl
+              max-w-xs
+              items-center
+              justify-center
+              rounded-2xl
               bg-blue-600
-              px-6
-              py-4
-              text-lg
+              px-5
+              py-3
+              text-sm
               font-bold
               text-white
               transition-all
@@ -327,6 +338,6 @@ export default function RegisterClient({
           </button>
         </div>
       </form>
-    </>
+    </div>
   );
 }

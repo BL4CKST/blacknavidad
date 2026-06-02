@@ -5,6 +5,7 @@ import { onAuthStateChanged, signOut } from "firebase/auth";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import {
+  faBars,
   faChevronDown,
   faRightFromBracket,
   faUser,
@@ -17,10 +18,12 @@ import Login from "./pages/Login";
 import InputSources from "./pages/InputSources";
 import Accounting from "./pages/Accounting";
 import PublicHome from "./pages/PublicHome";
+import DeleteClients from "./pages/DeleteClients";
 
 import { auth } from "./firebase/auth";
 import {
   createClient,
+  deleteClient as deleteClientFirestore,
   editClient,
   listenClients,
   updateClientState,
@@ -36,6 +39,17 @@ const escapeHtml = (value = "") =>
     .replaceAll("'", "&#039;");
 
 const buildPrintHTML = (client) => {
+  const printedAt = new Date();
+  const date = printedAt.toLocaleDateString("es-PE", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+  const time = printedAt.toLocaleTimeString("es-PE", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
   return `
     <!DOCTYPE html>
     <html>
@@ -57,12 +71,13 @@ const buildPrintHTML = (client) => {
             width: 80mm;
             margin: 0;
             padding: 0;
-            font-family: Arial, sans-serif;
+            font-family: Arial, Helvetica, sans-serif;
             background: white;
+            color: #000;
           }
 
           body {
-            padding: 10px;
+            padding: 8px 10px 10px;
           }
 
           .center {
@@ -70,31 +85,122 @@ const buildPrintHTML = (client) => {
           }
 
           .line {
-            border-top: 1px dashed black;
-            margin: 10px 0;
+            border-top: 1px dashed #000;
+            margin: 8px 0;
+          }
+
+          .solid {
+            border-top: 2px solid #000;
+            margin: 8px 0;
+          }
+
+          .brand {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 900;
+            letter-spacing: 0.5px;
+          }
+
+          .doc-title {
+            display: inline-block;
+            margin: 8px 0 6px;
+            border: 1px solid #000;
+            padding: 3px 10px;
+            font-size: 12px;
+            font-weight: 900;
+            letter-spacing: 1px;
+          }
+
+          .sub {
+            margin: 2px 0;
+            font-size: 11px;
+            font-weight: 700;
+          }
+
+          .meta {
+            border: 1px solid #000;
+            padding: 5px;
+            margin-top: 8px;
+            font-size: 9.5px;
+            font-weight: 800;
+            line-height: 1.35;
+            text-align: center;
+          }
+
+          .url {
+            display: block;
+            margin-top: 2px;
+            font-size: 10px;
+            font-weight: 900;
+          }
+
+          .id-label {
+            font-size: 10px;
+            font-weight: 900;
+            letter-spacing: 1px;
           }
 
           .id {
-            font-size: 60px;
+            font-size: 46px;
             font-weight: 900;
             line-height: 1;
-            margin: 10px 0;
+            margin: 5px 0 2px;
           }
 
           .row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 8px;
-            font-size: 14px;
-            gap: 10px;
+            align-items: flex-start;
+            margin-bottom: 6px;
+            font-size: 11px;
+            gap: 8px;
           }
 
-          .bold {
-            font-weight: bold;
+          .label {
+            min-width: 26mm;
+            font-weight: 900;
+          }
+
+          .value {
+            flex: 1;
+            text-align: right;
+            font-weight: 800;
+            word-break: break-word;
+          }
+
+          .money-row {
+            font-size: 12px;
+          }
+
+          .total-due {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 8px;
+            border-top: 2px solid #000;
+            border-bottom: 2px solid #000;
+            padding: 7px 0;
+          }
+
+          .due-label {
+            font-size: 13px;
+            font-weight: 900;
           }
 
           .debe {
-            font-size: 24px;
+            font-size: 26px;
+            font-weight: 900;
+          }
+
+          .footer-date {
+            margin-top: 8px;
+            font-size: 10px;
+            font-weight: 700;
+          }
+
+          .thanks {
+            margin-top: 6px;
+            font-size: 11px;
             font-weight: 900;
           }
         </style>
@@ -102,21 +208,27 @@ const buildPrintHTML = (client) => {
 
       <body>
         <div class="center">
-          <h2>INV MOISES</h2>
+          <h1 class="brand">INV MOISES</h1>
+          <div class="doc-title">NOTA DE VENTA</div>
 
-          <p>
+          <p class="sub">
             Servicio de Asados
           </p>
 
-          <p>
-            Edición Fin de Año
+          <p class="sub">
+            Campana Fin de Ano 2026
           </p>
         </div>
 
-        <div class="line"></div>
+        <div class="meta">
+          Consulta el estado de tus fuentes con este codigo en
+          <span class="url">https://blacknavidad.vercel.app/</span>
+        </div>
+
+        <div class="solid"></div>
 
         <div class="center">
-          <div>ID</div>
+          <div class="id-label">CODIGO DE PEDIDO</div>
 
           <div class="id">
             ${escapeHtml(client.id)}
@@ -126,38 +238,42 @@ const buildPrintHTML = (client) => {
         <div class="line"></div>
 
         <div class="row">
-          <span class="bold">Cliente:</span>
-          <span class="bold">${escapeHtml(client.nombre)}</span>
+          <span class="label">Cliente</span>
+          <span class="value">${escapeHtml(client.nombre)}</span>
         </div>
 
         <div class="row">
-          <span class="bold">Contenido:</span>
-          <span class="bold">${escapeHtml(client.contenido)}</span>
+          <span class="label">Contenido</span>
+          <span class="value">${escapeHtml(client.contenido)}</span>
         </div>
 
         <div class="row">
-          <span class="bold">Fuentes:</span>
-          <span class="bold">${escapeHtml(client.fuentes)}</span>
-        </div>
-
-        <div class="row">
-          <span class="bold">Total:</span>
-          <span class="bold">S/${escapeHtml(client.total)}</span>
-        </div>
-
-        <div class="row">
-          <span class="bold">Adelanto:</span>
-          <span class="bold">S/${escapeHtml(client.adelanto)}</span>
-        </div>
-
-        <div class="row">
-          <span class="bold">Debe:</span>
-          <span class="debe">S/${escapeHtml(client.debe)}</span>
+          <span class="label">Fuentes</span>
+          <span class="value">${escapeHtml(client.fuentes)}</span>
         </div>
 
         <div class="line"></div>
 
-        <div class="center">
+        <div class="row money-row">
+          <span class="label">Total</span>
+          <span class="value">S/ ${escapeHtml(client.total)}</span>
+        </div>
+
+        <div class="row money-row">
+          <span class="label">Adelanto</span>
+          <span class="value">S/ ${escapeHtml(client.adelanto)}</span>
+        </div>
+
+        <div class="total-due">
+          <span class="due-label">SALDO</span>
+          <span class="debe">S/ ${escapeHtml(client.debe)}</span>
+        </div>
+
+        <div class="center footer-date">
+          Emitido: ${escapeHtml(date)} - ${escapeHtml(time)}
+        </div>
+
+        <div class="center thanks">
           Gracias por su preferencia
         </div>
       </body>
@@ -273,6 +389,10 @@ export default function App() {
     await editClient(firebaseId, data);
   };
 
+  const deleteClient = async (firebaseId) => {
+    await deleteClientFirestore(firebaseId);
+  };
+
   const updateFuentes = async (firebaseId, fuentesListas, totalFuentes) => {
     await updateFuentesFirestore(firebaseId, fuentesListas, totalFuentes);
   };
@@ -306,6 +426,34 @@ export default function App() {
         <div ref={menuRef} className="relative z-30 mb-5">
           <header className="flex items-center justify-between gap-3 rounded-[28px] border border-white/80 bg-white/85 px-4 py-3 shadow-[0_18px_60px_rgba(15,23,42,0.10)] backdrop-blur-2xl">
             <div className="flex min-w-0 items-center gap-3">
+              {sidebarCollapsed && (
+                <button
+                  onClick={() => setSidebarCollapsed(false)}
+                  className="
+                    hidden
+                    h-11
+                    w-11
+                    shrink-0
+                    items-center
+                    justify-center
+                    rounded-2xl
+                    border
+                    border-slate-200
+                    bg-white
+                    text-slate-700
+                    shadow-sm
+                    transition
+                    hover:border-slate-300
+                    hover:shadow-md
+                    md:flex
+                  "
+                  aria-label="Mostrar menú"
+                  title="Mostrar menú"
+                >
+                  <FontAwesomeIcon icon={faBars} />
+                </button>
+              )}
+
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-sm font-black text-white shadow-lg shadow-slate-900/20">
                 IM
               </div>
@@ -362,23 +510,29 @@ export default function App() {
 
         <div
           className={`
+            relative
             grid
             gap-5
             transition-all
             duration-300
-            md:grid-cols-[240px_1fr]
-            ${sidebarCollapsed ? "md:grid-cols-[88px_1fr]" : ""}
+            ${
+              sidebarCollapsed
+                ? "md:grid-cols-[minmax(0,1fr)]"
+                : "md:grid-cols-[240px_minmax(0,1fr)]"
+            }
           `}
         >
-          <Sidebar
-            page={page}
-            setPage={setPage}
-            handleLogout={handleLogout}
-            collapsed={sidebarCollapsed}
-            setCollapsed={setSidebarCollapsed}
-          />
+          {!sidebarCollapsed && (
+            <Sidebar
+              page={page}
+              setPage={setPage}
+              handleLogout={handleLogout}
+              collapsed={sidebarCollapsed}
+              setCollapsed={setSidebarCollapsed}
+            />
+          )}
 
-          <section className="relative rounded-3xl border border-[#cfd8e3] bg-[#f3f7fb] p-4 md:p-5">
+          <section className="relative w-full min-w-0 rounded-3xl border border-[#cfd8e3] bg-[#f3f7fb] p-4 md:p-5">
             {page === "home" && (
               <Home
                 clients={clients}
@@ -395,10 +549,13 @@ export default function App() {
             )}
 
             {page === "accounting" && <Accounting clients={clients} />}
+
+            {page === "delete" && (
+              <DeleteClients clients={clients} deleteClient={deleteClient} />
+            )}
           </section>
         </div>
       </div>
     </main>
   );
 }
-

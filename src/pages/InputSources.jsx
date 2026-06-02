@@ -4,8 +4,14 @@ export default function InputSources({
   clients,
   updateFuentes,
 }) {
+  const [search, setSearch] =
+    useState("");
+
   const sourceClients =
     useMemo(() => {
+      const normalizedSearch =
+        search.trim().toLowerCase();
+
       return clients
         .filter(
           (client) =>
@@ -14,6 +20,14 @@ export default function InputSources({
             client.estado ===
               "listo"
         )
+        .filter((client) => {
+          if (!normalizedSearch)
+            return true;
+
+          return String(client.id || "")
+            .toLowerCase()
+            .includes(normalizedSearch);
+        })
         .sort((a, b) => {
           const aCompleted =
             (a.fuentesListas ?? 0) >=
@@ -28,7 +42,7 @@ export default function InputSources({
             Number(bCompleted)
           );
         });
-    }, [clients]);
+    }, [clients, search]);
 
   const [changes, setChanges] =
     useState({});
@@ -95,15 +109,51 @@ export default function InputSources({
   return (
     <>
       {/* HEADER */}
-      <div className="mb-8">
-        <h2 className="text-2xl font-black text-slate-900">
-          INGRESAR
-        </h2>
+      <div className="mb-5 grid gap-3 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-end">
+        <div>
+          <h2 className="text-2xl font-black text-slate-900">
+            INGRESAR
+          </h2>
 
-        <p className="mt-1 text-sm text-slate-500">
-          Registra las fuentes que salen
-          del horno.
-        </p>
+          <p className="mt-1 text-sm text-slate-500">
+            Registra las fuentes que salen
+            del horno.
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-slate-200 bg-white p-2.5 shadow-sm">
+          <label className="mb-1 block px-1 text-xs font-bold text-slate-700">
+            Buscar ID
+          </label>
+
+          <input
+            type="text"
+            value={search}
+            onChange={(e) =>
+              setSearch(e.target.value)
+            }
+            placeholder="C-1"
+            className="
+              w-full
+              rounded-xl
+              border
+              border-slate-200
+              bg-slate-50
+              px-3
+              py-2.5
+              text-sm
+              font-bold
+              uppercase
+              text-slate-900
+              outline-none
+              placeholder:text-slate-400
+              focus:border-orange-300
+              focus:bg-white
+              focus:ring-4
+              focus:ring-orange-100
+            "
+          />
+        </div>
       </div>
 
       {/* GRID */}

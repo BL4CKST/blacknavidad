@@ -14,11 +14,13 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 const BoardSummary = ({ label, value, color }) => (
-  <div className="rounded-[22px] border border-slate-200 bg-white px-4 py-3 shadow-sm">
-    <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-400">
+  <div className="rounded-2xl border border-slate-200 bg-white px-2.5 py-2 shadow-sm sm:rounded-[22px] sm:px-4 sm:py-3">
+    <p className="truncate text-[9px] font-bold uppercase tracking-[0.08em] text-slate-400 sm:text-[11px] sm:tracking-[0.16em]">
       {label}
     </p>
-    <p className={`mt-1 text-2xl font-extrabold ${color}`}>{value}</p>
+    <p className={`mt-0.5 text-xl font-extrabold sm:mt-1 sm:text-2xl ${color}`}>
+      {value}
+    </p>
   </div>
 );
 
@@ -120,7 +122,7 @@ export default function Home({
             </p>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-3 lg:min-w-[420px]">
+          <div className="grid grid-cols-3 gap-2 sm:gap-3 lg:min-w-[420px]">
             <BoardSummary label="En espera" value={waiting.length} color="text-blue-700" />
             <BoardSummary label="Listo" value={ready.length} color="text-emerald-700" />
             <BoardSummary label="Entregado" value={delivered.length} color="text-red-700" />

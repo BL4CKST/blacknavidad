@@ -351,59 +351,99 @@ export default function ClientModal({
           </button>
 
           {client.estado === "listo" && (
-            <>
-              {confirmDelivery ? (
-                <div className="col-span-2 rounded-2xl border border-orange-200 bg-orange-50 p-3">
-                  <p className="text-sm font-bold text-orange-800">
-                    ¿Confirmas entregar este pedido?
-                  </p>
-                  <p className="mt-1 text-xs text-orange-700">
-                    Se marcará como entregado, el debe pasará a S/0 y el adelanto será igual al total.
-                  </p>
-
-                  <div className="mt-3 grid grid-cols-2 gap-2">
-                    <button
-                      onClick={() => setConfirmDelivery(false)}
-                      className="rounded-xl bg-white px-3 py-2.5 text-sm font-bold text-slate-700"
-                    >
-                      Cancelar
-                    </button>
-
-                    <button
-                      onClick={() => handleStatus("entregado")}
-                      className="inline-flex items-center justify-center rounded-xl bg-orange-500 px-3 py-2.5 text-sm font-bold text-white"
-                    >
-                      <FontAwesomeIcon icon={faCheck} className="mr-2" />
-                      Confirmar
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <button
-                  onClick={() => setConfirmDelivery(true)}
-                  className="
-                    col-span-2
-                    inline-flex
-                    items-center
-                    justify-center
-                    rounded-2xl
-                    bg-orange-500
-                    px-4
-                    py-3
-                    text-sm
-                    font-bold
-                    text-white
-                    sm:py-4
-                  "
-                >
-                  <FontAwesomeIcon icon={faCheck} className="mr-2" />
-                  Marcar entregado
-                </button>
-              )}
-            </>
+            <button
+              onClick={() => setConfirmDelivery(true)}
+              className="
+                col-span-2
+                inline-flex
+                items-center
+                justify-center
+                rounded-2xl
+                bg-orange-500
+                px-4
+                py-3
+                text-sm
+                font-bold
+                text-white
+                sm:py-4
+              "
+            >
+              <FontAwesomeIcon icon={faCheck} className="mr-2" />
+              Marcar entregado
+            </button>
           )}
         </div>
       </div>
+
+      {confirmDelivery && (
+        <div
+          className="
+            fixed
+            inset-0
+            z-[60]
+            flex
+            items-center
+            justify-center
+            bg-black/30
+            p-4
+          "
+        >
+          <div
+            className="
+              w-full
+              max-w-md
+              rounded-3xl
+              bg-white
+              p-6
+              shadow-[0_30px_100px_rgba(15,23,42,0.25)]
+            "
+          >
+            <h3 className="text-2xl font-black text-slate-900">
+              Confirmacion
+            </h3>
+
+            <p className="mt-3 text-slate-600">
+              Seguro que deseas marcar este pedido como entregado?
+            </p>
+
+            <p className="mt-2 text-sm font-semibold text-orange-600">
+              El debe pasara a S/0 y el adelanto sera igual al total.
+            </p>
+
+            <div className="mt-6 flex gap-3">
+              <button
+                onClick={() => setConfirmDelivery(false)}
+                className="
+                  flex-1
+                  rounded-2xl
+                  bg-slate-100
+                  px-5
+                  py-3
+                  font-bold
+                  text-slate-700
+                "
+              >
+                Cancelar
+              </button>
+
+              <button
+                onClick={() => handleStatus("entregado")}
+                className="
+                  flex-1
+                  rounded-2xl
+                  bg-orange-500
+                  px-5
+                  py-3
+                  font-bold
+                  text-white
+                "
+              >
+                Confirmar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

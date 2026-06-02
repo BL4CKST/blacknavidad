@@ -1,6 +1,7 @@
 import {
   addDoc,
   collection,
+  deleteDoc,
   doc,
   getDocs,
   limit,
@@ -79,6 +80,13 @@ export const editClient = async (firebaseId, data) => {
   const clientDoc = doc(db, "clients", firebaseId);
 
   await updateDoc(clientDoc, data);
+};
+
+// ELIMINAR
+export const deleteClient = async (firebaseId) => {
+  const clientDoc = doc(db, "clients", firebaseId);
+
+  await deleteDoc(clientDoc);
 };
 
 // ESTADO
