@@ -1,57 +1,135 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import {
+  faBoxOpen,
   faCircleCheck,
-  faCircleInfo,
   faClock,
+  faFire,
   faHandHoldingDollar,
   faTruckFast,
+  faUser,
   faXmark,
 } from "@fortawesome/free-solid-svg-icons";
 
-const formatMoney = (value) => {
-  const number = Number(value || 0);
-  return `S/${number}`;
-};
+const formatMoney = (value) => `S/${Number(value || 0)}`;
 
 const getStatusConfig = (estado) => {
   if (estado === "listo") {
     return {
-      label: "LISTO PARA RECOGER",
+      label: "LISTO",
+      title: "LISTO PARA RECOGER",
+      helper: "Tu pedido ya esta listo para recoger.",
       icon: faCircleCheck,
-      wrap: "border-emerald-200 bg-emerald-50 text-emerald-700",
-      helper: "Tu pedido ya está disponible.",
+      accent: "#10b981",
+      banner: "border-emerald-200 bg-emerald-50 text-emerald-700",
+      soft: "border-emerald-200 bg-emerald-50 text-emerald-700",
+      iconSoft: "bg-emerald-100 text-emerald-600",
+      progressTrack: "#d1fae5",
     };
   }
 
   if (estado === "entregado" || estado === "atendido") {
     return {
-      label: "PEDIDO ENTREGADO",
-      icon: faTruckFast,
-      wrap: "border-red-200 bg-red-50 text-red-700",
+      label: "ENTREGADO",
+      title: "PEDIDO ENTREGADO",
       helper: "Este pedido ya fue retirado.",
+      icon: faTruckFast,
+      accent: "#ef4444",
+      banner: "border-red-200 bg-red-50 text-red-700",
+      soft: "border-red-200 bg-red-50 text-red-700",
+      iconSoft: "bg-red-100 text-red-600",
+      progressTrack: "#fee2e2",
     };
   }
 
   return {
     label: "EN ESPERA",
+    title: "EN PREPARACION",
+    helper: "Tu pedido aun se esta preparando.",
     icon: faClock,
-    wrap: "border-blue-200 bg-blue-50 text-blue-700",
-    helper: "Tu pedido aún se está preparando.",
+    accent: "#2563eb",
+    banner: "border-blue-200 bg-blue-50 text-blue-700",
+    soft: "border-blue-200 bg-blue-50 text-blue-700",
+    iconSoft: "bg-blue-100 text-blue-600",
+    progressTrack: "#dbeafe",
   };
 };
 
-const Field = ({ label, value }) => (
-  <div className="rounded-2xl border border-slate-200 bg-white p-2.5 sm:p-3">
-    <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400 sm:text-[11px]">
-      {label}
-    </p>
+const Field = ({ label, value, icon, tone = "blue", strong = false }) => {
+  const styles = {
+    blue: "bg-blue-50 text-blue-600",
+    orange: "bg-orange-50 text-orange-600",
+    green: "bg-emerald-50 text-emerald-600",
+    red: "bg-red-50 text-red-600",
+    amber: "bg-amber-50 text-amber-600",
+  };
 
-    <p className="mt-1 break-words text-sm font-bold text-slate-900">
-      {value || "-"}
-    </p>
-  </div>
-);
+  return (
+    <div className="flex min-h-[68px] items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:min-h-[86px] sm:rounded-[22px] sm:p-4">
+      <div
+        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-base sm:h-12 sm:w-12 ${styles[tone]}`}
+      >
+        <FontAwesomeIcon icon={icon} />
+      </div>
+
+      <div className="min-w-0">
+        <p className="text-[9px] font-black uppercase tracking-[0.16em] text-slate-400 sm:text-[10px] sm:tracking-[0.18em]">
+          {label}
+        </p>
+        <p
+          className={`mt-1 break-words text-sm font-black sm:text-base ${
+            strong ? "text-orange-600 sm:text-xl" : "text-slate-950"
+          }`}
+        >
+          {value || "-"}
+        </p>
+      </div>
+    </div>
+  );
+};
+
+const ProgressCircle = ({
+  completed,
+  total,
+  progress,
+  status,
+  size = "large",
+}) => {
+  const dimensions =
+    size === "small"
+      ? "h-[74px] w-[74px] p-1.5"
+      : "h-[104px] w-[104px] p-2 sm:h-[116px] sm:w-[116px]";
+  const numberClass =
+    size === "small"
+      ? "text-xl"
+      : "text-3xl sm:text-4xl";
+
+  return (
+    <div
+      className={`grid shrink-0 place-items-center rounded-full ${dimensions}`}
+      style={{
+        background: `conic-gradient(${status.accent} ${progress}%, #e2e8f0 0)`,
+      }}
+    >
+      <div
+        className="grid h-full w-full place-items-center rounded-full text-center"
+        style={{ backgroundColor: status.progressTrack }}
+      >
+        <div>
+          <p
+            className={`${numberClass} font-black leading-none`}
+            style={{ color: status.accent }}
+          >
+            {completed}/{total || 0}
+          </p>
+          <p className="mt-1 text-[9px] font-black text-slate-700 sm:text-xs">
+            Fuentes
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default function PublicClientModal({ client, onClose }) {
   if (!client) return null;
@@ -61,7 +139,18 @@ export default function PublicClientModal({ client, onClose }) {
   const cancelado = debe <= 0;
   const fuentesListas = Number(client.fuentesListas || 0);
   const totalFuentes = Number(client.fuentes || 0);
-  const faltan = totalFuentes - fuentesListas;
+  const safeTotal = Math.max(totalFuentes, 1);
+  const completed = Math.min(fuentesListas, totalFuentes);
+  const faltan = Math.max(totalFuentes - fuentesListas, 0);
+  const progress = Math.min((completed / safeTotal) * 100, 100);
+  const progressText =
+    completed === 1
+      ? "1 fuente ya salio del horno."
+      : `${completed} fuentes ya salieron del horno.`;
+  const pendingText =
+    faltan > 0
+      ? `Faltan ${faltan} fuentes por salir.`
+      : "Todas tus fuentes estan listas.";
 
   return (
     <div
@@ -73,111 +162,194 @@ export default function PublicClientModal({ client, onClose }) {
         flex
         items-center
         justify-center
-        bg-slate-950/35
+        bg-slate-950/40
         p-2
         backdrop-blur-sm
-        sm:p-3
+        sm:p-4
       "
     >
       <div
         onClick={(e) => e.stopPropagation()}
         className="
+          relative
+          max-h-[calc(100svh-16px)]
           w-full
-          max-w-[390px]
-          overflow-hidden
-          rounded-[24px]
+          max-w-[440px]
+          overflow-y-auto
+          rounded-[28px]
           border
-          border-white/70
+          border-white/80
           bg-white
-          shadow-[0_30px_100px_rgba(15,23,42,0.25)]
-          sm:max-w-xl
-          sm:rounded-[26px]
+          p-3
+          shadow-[0_30px_100px_rgba(15,23,42,0.28)]
+          sm:max-h-[calc(100svh-32px)]
+          sm:max-w-3xl
+          sm:rounded-[34px]
+          sm:p-5
         "
       >
-        <div className="p-3 sm:p-4">
-          <div className={`relative rounded-[20px] border p-3 pr-11 sm:rounded-[22px] ${status.wrap}`}>
-            <button
-              onClick={onClose}
-              className="
-                absolute
-                right-3
-                top-3
-                flex
-                h-8
-                w-8
-                items-center
-                justify-center
-                rounded-full
-                border
-                border-current
-                bg-transparent
-                text-current
-                opacity-70
-                transition
-                hover:opacity-100
-              "
-              aria-label="Cerrar modal"
-            >
-              <FontAwesomeIcon icon={faXmark} className="text-sm" />
-            </button>
+        <button
+          onClick={onClose}
+          className="
+            absolute
+            right-5
+            top-5
+            z-20
+            flex
+            h-9
+            w-9
+            items-center
+            justify-center
+            rounded-full
+            border
+            border-current
+            bg-white/70
+            text-slate-600
+            transition
+            hover:bg-white
+          "
+          aria-label="Cerrar modal"
+        >
+          <FontAwesomeIcon icon={faXmark} />
+        </button>
 
-            <div className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.18em] sm:text-[11px]">
-              <FontAwesomeIcon icon={status.icon} className="text-[12px]" />
-              Estado del pedido
+        <div className="grid grid-cols-2 gap-2.5 sm:hidden">
+          <div className={`rounded-[22px] border p-3 pr-9 ${status.soft}`}>
+            <div className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.12em]">
+              <FontAwesomeIcon icon={status.icon} />
+              Estado
             </div>
-
-            <h2 className="mt-2 text-lg font-black tracking-tight sm:text-2xl">
+            <h2 className="mt-2 text-lg font-black leading-tight">
               {status.label}
             </h2>
-
-            <p className="mt-1.5 max-w-xl text-xs font-medium text-slate-600 sm:text-sm">
+            <p className="mt-1 text-[11px] font-semibold text-slate-600">
               {status.helper}
             </p>
           </div>
 
-          <div className="mt-2.5 grid gap-2.5 sm:mt-3 sm:grid-cols-2">
-            <div className="rounded-[20px] border border-blue-200 bg-blue-50 p-3 text-blue-700 sm:col-span-2 sm:rounded-[22px]">
-              <div className="inline-flex items-center gap-2 text-blue-700">
-                <FontAwesomeIcon icon={faCircleInfo} />
-
-                <p className="text-[10px] font-black uppercase tracking-[0.18em] sm:text-[11px]">
-                  Producción
+          <div className={`rounded-[22px] border p-3 ${status.soft}`}>
+            <div className="mb-2 inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.12em]">
+              <FontAwesomeIcon icon={faBoxOpen} />
+              Progreso
+            </div>
+            <div className="flex items-center gap-2">
+              <ProgressCircle
+                completed={completed}
+                total={totalFuentes}
+                progress={progress}
+                status={status}
+                size="small"
+              />
+              <div className="min-w-0">
+                <p className="text-xs font-black text-slate-900">
+                  {completed}/{totalFuentes || 0} listas
+                </p>
+                <p className="mt-1 text-[11px] font-semibold text-slate-600">
+                  {faltan > 0 ? `Faltan ${faltan}` : "Completas"}
                 </p>
               </div>
+            </div>
+          </div>
+        </div>
 
-              <p className="mt-2 text-base font-black text-blue-700 sm:text-lg">
-                {fuentesListas} / {totalFuentes} fuentes listas
-              </p>
-
-              {fuentesListas < totalFuentes && (
-                <p className="mt-1.5 text-xs text-blue-600 sm:text-sm">
-                  Faltan {faltan} fuentes por salir del horno
-                </p>
-              )}
+        <div className={`relative hidden overflow-hidden rounded-[26px] border p-5 pr-14 sm:block ${status.banner}`}>
+          <div className="relative z-10 max-w-[66%]">
+            <div className="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.18em]">
+              <FontAwesomeIcon icon={status.icon} />
+              Estado del pedido
             </div>
 
-            <Field label="Cliente" value={client.nombre} />
-            <Field label="Contenido" value={client.contenido} />
-            <Field label="Fuentes" value={`${client.fuentes ?? 0} fuentes`} />
-            <Field label="Total" value={formatMoney(client.total)} />
-            <Field label="Adelanto" value={formatMoney(client.adelanto)} />
+            <h2 className="mt-3 text-4xl font-black leading-tight tracking-tight">
+              {status.title}
+            </h2>
+
+            <p className="mt-2 text-sm font-semibold text-slate-600">
+              {status.helper}
+            </p>
           </div>
 
-          <div className="mt-2.5 grid gap-2.5 sm:mt-3 sm:grid-cols-2">
-            <div className="rounded-[20px] border border-orange-200 bg-orange-50 p-3 sm:rounded-[22px]">
-              <div className="flex items-center gap-2 text-orange-700">
-                <FontAwesomeIcon icon={faHandHoldingDollar} />
+          <div className="absolute bottom-5 right-5 flex items-center gap-3">
+            <div className={`flex h-16 w-16 items-center justify-center rounded-3xl text-3xl ${status.iconSoft}`}>
+              <FontAwesomeIcon icon={faFire} />
+            </div>
+            <div
+              className="h-16 w-24 rounded-b-[18px] rounded-t-[44px] border-[8px]"
+              style={{
+                borderColor: status.progressTrack,
+                backgroundColor: status.progressTrack,
+              }}
+            >
+              <div
+                className="mx-auto mt-6 h-6 w-10 rounded-t-full"
+                style={{ backgroundColor: status.accent }}
+              />
+            </div>
+          </div>
+        </div>
 
-                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] sm:text-[11px]">
-                  Debe
-                </p>
+        <div className="mt-3 grid gap-2.5 sm:mt-4 sm:grid-cols-2 sm:gap-3">
+          <Field label="Cliente" value={client.nombre} icon={faUser} tone="blue" />
+          <Field label="Contenido" value={client.contenido} icon={faFire} tone="orange" />
+          <Field
+            label="Fuentes"
+            value={`${client.fuentes ?? 0} fuentes`}
+            icon={faBoxOpen}
+            tone="green"
+          />
+          <Field label="Total" value={formatMoney(client.total)} icon={faHandHoldingDollar} tone="red" />
+          <Field label="Adelanto" value={formatMoney(client.adelanto)} icon={faHandHoldingDollar} tone="amber" />
+          <Field
+            label="Debe"
+            value={cancelado ? "CANCELADO" : formatMoney(debe)}
+            icon={faHandHoldingDollar}
+            tone="red"
+            strong
+          />
+        </div>
+
+        <div className={`mt-3 hidden rounded-[26px] border p-5 sm:block ${status.soft}`}>
+          <div className="mb-3 inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.18em]">
+            <FontAwesomeIcon icon={faBoxOpen} />
+            Progreso de fuentes
+          </div>
+
+          <div className="grid grid-cols-[116px_minmax(0,1fr)] items-center gap-5">
+            <ProgressCircle
+              completed={completed}
+              total={totalFuentes}
+              progress={progress}
+              status={status}
+            />
+
+            <div className="min-w-0">
+              <p className="text-lg font-black text-slate-900">
+                {progressText}
+              </p>
+
+              <p className="mt-1 text-base font-semibold text-slate-600">
+                {pendingText}
+              </p>
+
+              <div
+                className="mt-3 h-3 overflow-hidden rounded-full"
+                style={{ backgroundColor: "#e2e8f0" }}
+              >
+                <div
+                  className="h-full rounded-full transition-all"
+                  style={{
+                    width: `${progress}%`,
+                    backgroundColor: status.accent,
+                  }}
+                />
               </div>
-
-              <p className="mt-1.5 text-2xl font-black text-orange-600 sm:text-3xl">
-                {cancelado ? "CANCELADO" : formatMoney(debe)}
-              </p>
             </div>
           </div>
+        </div>
+
+        <div className="mt-3 flex items-center justify-center gap-3 text-center text-[11px] font-bold text-slate-400">
+          <span className="h-px w-16 bg-slate-200" />
+          Actualizado en tiempo real
+          <span className="h-px w-16 bg-slate-200" />
         </div>
       </div>
     </div>
