@@ -3,15 +3,82 @@ import { useMemo, useState } from "react";
 import ClientCard from "../components/ClientCard";
 import ClientModal from "../components/ClientModal";
 
-import {
-  FontAwesomeIcon,
-} from "@fortawesome/react-fontawesome";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import {
-  faHourglassHalf,
-  faFire,
   faCircleCheck,
+  faFire,
+  faHourglassHalf,
+  faInbox,
+  faMagnifyingGlass,
 } from "@fortawesome/free-solid-svg-icons";
+
+const BoardSummary = ({ label, value, color }) => (
+  <div className="rounded-[22px] border border-slate-200 bg-white px-4 py-3 shadow-sm">
+    <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-400">
+      {label}
+    </p>
+    <p className={`mt-1 text-2xl font-extrabold ${color}`}>{value}</p>
+  </div>
+);
+
+const BoardColumn = ({ title, count, icon, tone, children }) => {
+  const styles = {
+    waiting: {
+      wrap: "border-blue-100 bg-blue-50/55",
+      title: "text-blue-700",
+      count: "bg-blue-100 text-blue-700",
+      empty: "text-blue-700",
+    },
+    ready: {
+      wrap: "border-emerald-100 bg-emerald-50/55",
+      title: "text-emerald-700",
+      count: "bg-emerald-100 text-emerald-700",
+      empty: "text-emerald-700",
+    },
+    delivered: {
+      wrap: "border-red-100 bg-red-50/55",
+      title: "text-red-700",
+      count: "bg-red-100 text-red-700",
+      empty: "text-red-700",
+    },
+  };
+
+  const current = styles[tone];
+  const hasItems = count > 0;
+
+  return (
+    <section className={`rounded-[28px] border p-4 shadow-sm ${current.wrap}`}>
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <FontAwesomeIcon icon={icon} className={`text-lg ${current.title}`} />
+          <h2 className={`truncate text-lg font-extrabold ${current.title}`}>
+            {title}
+          </h2>
+        </div>
+
+        <div
+          className={`flex h-9 min-w-9 items-center justify-center rounded-full px-3 text-sm font-extrabold ${current.count}`}
+        >
+          {count}
+        </div>
+      </div>
+
+      <div className="min-h-[160px] space-y-3 md:max-h-[62vh] md:overflow-y-auto md:pr-1 2xl:grid 2xl:grid-cols-2 2xl:gap-3 2xl:space-y-0">
+        {hasItems ? (
+          children
+        ) : (
+          <div className="flex min-h-[140px] flex-col items-center justify-center rounded-[22px] border border-dashed border-white bg-white/55 px-4 text-center 2xl:col-span-2">
+            <FontAwesomeIcon icon={faInbox} className={`text-2xl ${current.empty}`} />
+            <p className="mt-3 text-sm font-semibold text-slate-500">
+              No hay pedidos aquí
+            </p>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+};
 
 export default function Home({
   clients,
@@ -20,8 +87,7 @@ export default function Home({
   printClientTicket,
 }) {
   const [search, setSearch] = useState("");
-  const [selectedClient, setSelectedClient] =
-    useState(null);
+  const [selectedClient, setSelectedClient] = useState(null);
 
   const filteredClients = useMemo(() => {
     return clients.filter((client) => {
@@ -30,238 +96,105 @@ export default function Home({
         ${client?.nombre ?? ""}
       `.toLowerCase();
 
-      return text.includes(
-        search.toLowerCase()
-      );
+      return text.includes(search.toLowerCase());
     });
   }, [clients, search]);
 
-  const waiting = filteredClients.filter(
-    (client) => client?.estado === "espera"
-  );
-
-  const ready = filteredClients.filter(
-    (client) => client?.estado === "listo"
-  );
-
-  const delivered = filteredClients.filter(
-    (client) =>
-      ["entregado", "atendido"].includes(
-        client?.estado
-      )
+  const waiting = filteredClients.filter((client) => client?.estado === "espera");
+  const ready = filteredClients.filter((client) => client?.estado === "listo");
+  const delivered = filteredClients.filter((client) =>
+    ["entregado", "atendido"].includes(client?.estado)
   );
 
   return (
     <>
       <div>
-        <div className="mb-6">
-          <h1 className="text-4xl font-black text-slate-950">
-            Dashboard
-          </h1>
+        <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <h1 className="text-4xl font-black text-slate-950">
+              Dashboard
+            </h1>
 
-          <p className="mt-2 text-slate-500">
-            Gestión premium de pedidos navideños
-          </p>
+            <p className="mt-2 text-slate-500">
+              Gestión premium de pedidos navideños
+            </p>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-3 lg:min-w-[420px]">
+            <BoardSummary label="En espera" value={waiting.length} color="text-blue-700" />
+            <BoardSummary label="Listo" value={ready.length} color="text-emerald-700" />
+            <BoardSummary label="Entregado" value={delivered.length} color="text-red-700" />
+          </div>
         </div>
 
         <div className="mb-6">
-          <input
-            type="text"
-            placeholder="Buscar por ID o nombre..."
-            value={search}
-            onChange={(e) =>
-              setSearch(e.target.value)
-            }
-            className="
-              w-full
-              rounded-3xl
-              border
-              border-slate-300
-              bg-white
-              px-6
-              py-4
-              text-sm
-              font-medium
-              outline-none
-            "
-          />
+          <div className="flex items-center gap-3 rounded-3xl border border-slate-300 bg-white px-5 shadow-sm focus-within:border-sky-300 focus-within:ring-4 focus-within:ring-sky-100">
+            <FontAwesomeIcon icon={faMagnifyingGlass} className="text-slate-400" />
+            <input
+              type="text"
+              placeholder="Buscar por ID o nombre..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full bg-transparent py-4 text-sm font-medium text-slate-900 outline-none placeholder:text-slate-400"
+            />
+          </div>
         </div>
 
         <div className="grid gap-5 xl:grid-cols-3">
-          <div
-            className="
-              rounded-3xl
-              border
-              border-slate-300
-              bg-[#cfd5dc]
-              p-4
-            "
+          <BoardColumn
+            title="EN ESPERA"
+            count={waiting.length}
+            icon={faHourglassHalf}
+            tone="waiting"
           >
-            <div className="mb-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <FontAwesomeIcon
-                  icon={faHourglassHalf}
-                  className="text-lg text-cyan-700"
-                />
+            {waiting.map((client) => (
+              <ClientCard
+                key={client.firebaseId}
+                client={client}
+                onClick={() => setSelectedClient(client)}
+              />
+            ))}
+          </BoardColumn>
 
-                <h2 className="text-2xl font-black text-cyan-700">
-                  EN ESPERA
-                </h2>
-              </div>
-
-              <div
-                className="
-                  flex
-                  h-8
-                  min-w-8
-                  items-center
-                  justify-center
-                  rounded-full
-                  bg-cyan-200
-                  px-2
-                  text-sm
-                  font-black
-                  text-cyan-700
-                "
-              >
-                {waiting.length}
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              {waiting.map((client) => (
-                <ClientCard
-                  key={client.firebaseId}
-                  client={client}
-                  onClick={() =>
-                    setSelectedClient(client)
-                  }
-                />
-              ))}
-            </div>
-          </div>
-
-          <div
-            className="
-              rounded-3xl
-              border
-              border-slate-300
-              bg-[#cfd5dc]
-              p-4
-            "
+          <BoardColumn
+            title="LISTO"
+            count={ready.length}
+            icon={faFire}
+            tone="ready"
           >
-            <div className="mb-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <FontAwesomeIcon
-                  icon={faFire}
-                  className="text-lg text-emerald-700"
-                />
+            {ready.map((client) => (
+              <ClientCard
+                key={client.firebaseId}
+                client={client}
+                onClick={() => setSelectedClient(client)}
+              />
+            ))}
+          </BoardColumn>
 
-                <h2 className="text-2xl font-black text-emerald-700">
-                  LISTO
-                </h2>
-              </div>
-
-              <div
-                className="
-                  flex
-                  h-8
-                  min-w-8
-                  items-center
-                  justify-center
-                  rounded-full
-                  bg-emerald-200
-                  px-2
-                  text-sm
-                  font-black
-                  text-emerald-700
-                "
-              >
-                {ready.length}
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              {ready.map((client) => (
-                <ClientCard
-                  key={client.firebaseId}
-                  client={client}
-                  onClick={() =>
-                    setSelectedClient(client)
-                  }
-                />
-              ))}
-            </div>
-          </div>
-
-          <div
-            className="
-              rounded-3xl
-              border
-              border-slate-300
-              bg-[#cfd5dc]
-              p-4
-            "
+          <BoardColumn
+            title="ENTREGADO"
+            count={delivered.length}
+            icon={faCircleCheck}
+            tone="delivered"
           >
-            <div className="mb-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <FontAwesomeIcon
-                  icon={faCircleCheck}
-                  className="text-lg text-orange-700"
-                />
-
-                <h2 className="text-2xl font-black text-orange-700">
-                  ENTREGADO
-                </h2>
-              </div>
-
-              <div
-                className="
-                  flex
-                  h-8
-                  min-w-8
-                  items-center
-                  justify-center
-                  rounded-full
-                  bg-orange-200
-                  px-2
-                  text-sm
-                  font-black
-                  text-orange-700
-                "
-              >
-                {delivered.length}
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              {delivered.map((client) => (
-                <ClientCard
-                  key={client.firebaseId}
-                  client={client}
-                  onClick={() =>
-                    setSelectedClient(client)
-                  }
-                />
-              ))}
-            </div>
-          </div>
+            {delivered.map((client) => (
+              <ClientCard
+                key={client.firebaseId}
+                client={client}
+                onClick={() => setSelectedClient(client)}
+              />
+            ))}
+          </BoardColumn>
         </div>
       </div>
 
       {selectedClient && (
         <ClientModal
           client={selectedClient}
-          onClose={() =>
-            setSelectedClient(null)
-          }
-          updateClientStatus={
-            updateClientStatus
-          }
+          onClose={() => setSelectedClient(null)}
+          updateClientStatus={updateClientStatus}
           updateClient={updateClient}
-          printClientTicket={
-            printClientTicket
-          }
+          printClientTicket={printClientTicket}
         />
       )}
     </>

@@ -15,6 +15,7 @@ import Home from "./pages/Home";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
 import InputSources from "./pages/InputSources";
+import Accounting from "./pages/Accounting";
 import PublicHome from "./pages/PublicHome";
 
 import { auth } from "./firebase/auth";
@@ -205,6 +206,7 @@ export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userMenu, setUserMenu] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const menuRef = useRef(null);
 
@@ -358,82 +360,45 @@ export default function App() {
           </header>
         </div>
 
-        <div className="grid gap-5 md:grid-cols-[280px_1fr]">
-        <Sidebar page={page} setPage={setPage} handleLogout={handleLogout} />
+        <div
+          className={`
+            grid
+            gap-5
+            transition-all
+            duration-300
+            md:grid-cols-[240px_1fr]
+            ${sidebarCollapsed ? "md:grid-cols-[88px_1fr]" : ""}
+          `}
+        >
+          <Sidebar
+            page={page}
+            setPage={setPage}
+            handleLogout={handleLogout}
+            collapsed={sidebarCollapsed}
+            setCollapsed={setSidebarCollapsed}
+          />
 
-        <section className="relative rounded-3xl border border-[#cfd8e3] bg-[#f3f7fb] p-4 md:p-5">
-          <div className="hidden">
-            <header className="flex items-center justify-between gap-3 rounded-[28px] border border-white/80 bg-white/85 px-4 py-3 shadow-[0_18px_60px_rgba(15,23,42,0.10)] backdrop-blur-2xl">
-              <div className="flex min-w-0 items-center gap-3">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-sm font-black text-white shadow-lg shadow-slate-900/20">
-                  IM
-                </div>
+          <section className="relative rounded-3xl border border-[#cfd8e3] bg-[#f3f7fb] p-4 md:p-5">
+            {page === "home" && (
+              <Home
+                clients={clients}
+                updateClientStatus={updateClientStatus}
+                updateClient={updateClient}
+                printClientTicket={printClientTicket}
+              />
+            )}
 
-                <div className="min-w-0 leading-none">
-                  <p className="truncate text-[12px] font-black uppercase tracking-[0.28em] text-slate-400">
-                    Inv. Moisés
-                  </p>
-                  <p className="mt-1 truncate text-sm font-semibold text-slate-700">
-                    Panel administrador
-                  </p>
-                </div>
-              </div>
+            {page === "register" && <Register clients={clients} addClient={addClient} />}
 
-              <div className="relative">
-                <button
-                  onClick={() => setUserMenu(!userMenu)}
-                  className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:shadow-md sm:px-4"
-                  aria-label="Abrir menú de usuario"
-                  aria-expanded={userMenu}
-                >
-                  <FontAwesomeIcon icon={faUser} className="text-slate-700" />
-                  <span className="hidden sm:inline">Cuenta</span>
-                  <FontAwesomeIcon
-                    icon={faChevronDown}
-                    className={`text-xs text-slate-400 transition ${userMenu ? "rotate-180" : ""}`}
-                  />
-                </button>
+            {page === "fuentes" && (
+              <InputSources clients={clients} updateFuentes={updateFuentes} />
+            )}
 
-                {userMenu && (
-                  <div className="absolute right-0 mt-3 w-[min(18rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_22px_60px_rgba(15,23,42,0.18)]">
-                    <div className="border-b border-slate-100 p-4">
-                      <p className="text-sm font-black text-slate-900">INV. MOISES</p>
-                      <p className="text-xs font-semibold text-slate-500">
-                        Sucursal Principal
-                      </p>
-                      <p className="mt-3 break-all rounded-xl bg-slate-50 px-3 py-2 text-xs font-medium text-slate-500">
-                        {currentUser?.email || "Sin correo registrado"}
-                      </p>
-                    </div>
-
-                    <button
-                      onClick={handleLogout}
-                      className="flex w-full items-center gap-3 px-4 py-4 text-sm font-bold text-red-500 transition hover:bg-red-50"
-                    >
-                      <FontAwesomeIcon icon={faRightFromBracket} />
-                      Cerrar sesión
-                    </button>
-                  </div>
-                )}
-              </div>
-            </header>
-          </div>
-
-          {page === "home" && (
-            <Home
-              clients={clients}
-              updateClientStatus={updateClientStatus}
-              updateClient={updateClient}
-              printClientTicket={printClientTicket}
-            />
-          )}
-
-          {page === "register" && <Register clients={clients} addClient={addClient} />}
-
-          {page === "fuentes" && <InputSources clients={clients} updateFuentes={updateFuentes} />}
-        </section>
+            {page === "accounting" && <Accounting clients={clients} />}
+          </section>
         </div>
       </div>
     </main>
   );
 }
+

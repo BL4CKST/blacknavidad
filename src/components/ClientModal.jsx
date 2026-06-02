@@ -27,10 +27,12 @@ export default function ClientModal({
 
   const [editing, setEditing] = useState(false);
   const [formData, setFormData] = useState(client || emptyForm);
+  const [confirmDelivery, setConfirmDelivery] = useState(false);
 
   useEffect(() => {
     setFormData(client || emptyForm);
     setEditing(false);
+    setConfirmDelivery(false);
   }, [client]);
 
   if (!client) return null;
@@ -60,7 +62,22 @@ export default function ClientModal({
     setEditing(false);
   };
 
+  const canEdit = client.estado === "espera";
+
   const handleStatus = async (estado) => {
+    if (estado === "entregado") {
+      const total = Number(client.total || 0);
+
+      await updateClient(client.firebaseId, {
+        estado: "entregado",
+        adelanto: total,
+        debe: 0,
+      });
+
+      onClose();
+      return;
+    }
+
     await updateClientStatus(client.firebaseId, estado);
     onClose();
   };
@@ -182,9 +199,9 @@ export default function ClientModal({
                 className={inputClassName}
               />
             ) : (
-              <p className="mt-1.5 text-sm font-black text-slate-900 sm:text-base">
-  {client.contenido}
-</p>
+              <p className="mt-1.5 text-sm font-semibold text-slate-700 sm:text-base">
+                {client.contenido}
+              </p>
             )}
           </div>
 
@@ -284,35 +301,37 @@ export default function ClientModal({
         </div>
 
         <div className="mt-3 grid grid-cols-2 gap-2.5 sm:mt-5 sm:gap-3">
-          <button
-            onClick={() => {
-              if (editing) {
-                handleSave();
-              } else {
-                setEditing(true);
-              }
-            }}
-            className="
-              inline-flex
-              items-center
-              justify-center
-              rounded-2xl
-              bg-blue-600
-              px-4
-              py-3
-              text-sm
-              font-bold
-              text-white
-              sm:py-4
-            "
-          >
-            <FontAwesomeIcon icon={faPen} className="mr-2" />
-            {editing ? "Guardar" : "Editar"}
-          </button>
+          {canEdit && (
+            <button
+              onClick={() => {
+                if (editing) {
+                  handleSave();
+                } else {
+                  setEditing(true);
+                }
+              }}
+              className="
+                inline-flex
+                items-center
+                justify-center
+                rounded-2xl
+                bg-blue-600
+                px-4
+                py-3
+                text-sm
+                font-bold
+                text-white
+                sm:py-4
+              "
+            >
+              <FontAwesomeIcon icon={faPen} className="mr-2" />
+              {editing ? "Guardar" : "Editar"}
+            </button>
+          )}
 
           <button
             onClick={handlePrint}
-            className="
+            className={`
               inline-flex
               items-center
               justify-center
@@ -323,34 +342,65 @@ export default function ClientModal({
               text-sm
               font-bold
               text-white
+              ${canEdit ? "" : "col-span-2"}
               sm:py-4
-            "
+            `}
           >
             <FontAwesomeIcon icon={faPrint} className="mr-2" />
             Imprimir
           </button>
 
           {client.estado === "listo" && (
-            <button
-              onClick={() => handleStatus("entregado")}
-              className="
-                col-span-2
-                inline-flex
-                items-center
-                justify-center
-                rounded-2xl
-                bg-orange-500
-                px-4
-                py-3
-                text-sm
-                font-bold
-                text-white
-                sm:py-4
-              "
-            >
-              <FontAwesomeIcon icon={faCheck} className="mr-2" />
-              Marcar entregado
-            </button>
+            <>
+              {confirmDelivery ? (
+                <div className="col-span-2 rounded-2xl border border-orange-200 bg-orange-50 p-3">
+                  <p className="text-sm font-bold text-orange-800">
+                    ¿Confirmas entregar este pedido?
+                  </p>
+                  <p className="mt-1 text-xs text-orange-700">
+                    Se marcará como entregado, el debe pasará a S/0 y el adelanto será igual al total.
+                  </p>
+
+                  <div className="mt-3 grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => setConfirmDelivery(false)}
+                      className="rounded-xl bg-white px-3 py-2.5 text-sm font-bold text-slate-700"
+                    >
+                      Cancelar
+                    </button>
+
+                    <button
+                      onClick={() => handleStatus("entregado")}
+                      className="inline-flex items-center justify-center rounded-xl bg-orange-500 px-3 py-2.5 text-sm font-bold text-white"
+                    >
+                      <FontAwesomeIcon icon={faCheck} className="mr-2" />
+                      Confirmar
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setConfirmDelivery(true)}
+                  className="
+                    col-span-2
+                    inline-flex
+                    items-center
+                    justify-center
+                    rounded-2xl
+                    bg-orange-500
+                    px-4
+                    py-3
+                    text-sm
+                    font-bold
+                    text-white
+                    sm:py-4
+                  "
+                >
+                  <FontAwesomeIcon icon={faCheck} className="mr-2" />
+                  Marcar entregado
+                </button>
+              )}
+            </>
           )}
         </div>
       </div>
