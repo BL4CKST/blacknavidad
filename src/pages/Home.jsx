@@ -89,7 +89,8 @@ export default function Home({
   printClientTicket,
 }) {
   const [search, setSearch] = useState("");
-  const [selectedClient, setSelectedClient] = useState(null);
+  const [selectedId, setSelectedId] = useState(null);
+  const selectedClient = clients.find((client) => client.id === selectedId);
 
   const filteredClients = useMemo(() => {
     return clients.filter((client) => {
@@ -151,9 +152,9 @@ export default function Home({
           >
             {waiting.map((client) => (
               <ClientCard
-                key={client.firebaseId}
+                key={client.id}
                 client={client}
-                onClick={() => setSelectedClient(client)}
+                onClick={() => setSelectedId(client.id)}
               />
             ))}
           </BoardColumn>
@@ -166,9 +167,9 @@ export default function Home({
           >
             {ready.map((client) => (
               <ClientCard
-                key={client.firebaseId}
+                key={client.id}
                 client={client}
-                onClick={() => setSelectedClient(client)}
+                onClick={() => setSelectedId(client.id)}
               />
             ))}
           </BoardColumn>
@@ -181,9 +182,9 @@ export default function Home({
           >
             {delivered.map((client) => (
               <ClientCard
-                key={client.firebaseId}
+                key={client.id}
                 client={client}
-                onClick={() => setSelectedClient(client)}
+                onClick={() => setSelectedId(client.id)}
               />
             ))}
           </BoardColumn>
@@ -192,8 +193,9 @@ export default function Home({
 
       {selectedClient && (
         <ClientModal
+          key={selectedId}
           client={selectedClient}
-          onClose={() => setSelectedClient(null)}
+          onClose={() => setSelectedId(null)}
           updateClientStatus={updateClientStatus}
           updateClient={updateClient}
           printClientTicket={printClientTicket}

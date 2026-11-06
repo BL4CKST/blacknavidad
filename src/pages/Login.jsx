@@ -1,6 +1,5 @@
 import { useState } from "react";
 
-import { signInWithEmailAndPassword } from "firebase/auth";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -11,12 +10,10 @@ import {
   faSpinner,
 } from "@fortawesome/free-solid-svg-icons";
 
-import { auth } from "../firebase/auth";
+import { isAdmin, supabase } from "../supabase/config";
 
 export default function Login({
-  setIsAuthenticated,
   onBackToPublic,
-  onLoginSuccess,
 }) {
   const [form, setForm] = useState({
     email: "",
@@ -35,19 +32,26 @@ export default function Login({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return;
 
     setLoading(true);
     setError("");
 
     try {
-      await signInWithEmailAndPassword(auth, form.email, form.password);
-      setIsAuthenticated(true);
-      onLoginSuccess?.();
-    } catch (err) {
-      setError("Correo o contraseña incorrectos");
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: form.email.trim(),
+        password: form.password,
+      });
+      if (error) throw error;
+      if (!isAdmin(data.user)) {
+        await supabase.auth.signOut({ scope: "local" });
+        setError("Esta cuenta no tiene acceso de administrador.");
+      }
+    } catch {
+      setError("No se pudo iniciar sesión. Verifica tus datos y conexión.");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (

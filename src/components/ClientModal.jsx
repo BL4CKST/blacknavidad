@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
@@ -16,24 +16,11 @@ export default function ClientModal({
   updateClient,
   printClientTicket,
 }) {
-  const emptyForm = {
-    nombre: "",
-    contenido: "",
-    fuentes: "",
-    total: "",
-    adelanto: "",
-    whatsapp: "",
-  };
-
   const [editing, setEditing] = useState(false);
-  const [formData, setFormData] = useState(client || emptyForm);
+  const [formData, setFormData] = useState(client);
   const [confirmDelivery, setConfirmDelivery] = useState(false);
-
-  useEffect(() => {
-    setFormData(client || emptyForm);
-    setEditing(false);
-    setConfirmDelivery(false);
-  }, [client]);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
   if (!client) return null;
 
@@ -51,35 +38,47 @@ export default function ClientModal({
     const adelanto = Number(formData.adelanto || 0);
     const fuentes = Number(formData.fuentes || 0);
 
-    await updateClient(client.firebaseId, {
-      ...formData,
-      fuentes,
-      total,
-      adelanto,
-      debe: total - adelanto,
-    });
-
-    setEditing(false);
+    if (saving) return;
+    setError("");
+    setSaving(true);
+    try {
+      await updateClient(client.id, {
+        nombre: formData.nombre,
+        contenido: formData.contenido,
+        whatsapp: formData.whatsapp,
+        fuentes,
+        total,
+        adelanto,
+      });
+      setEditing(false);
+    } catch {
+      setError("No se pudo guardar el pedido. Revisa los datos e intenta de nuevo.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const canEdit = client.estado === "espera";
 
   const handleStatus = async (estado) => {
-    if (estado === "entregado") {
-      const total = Number(client.total || 0);
-
-      await updateClient(client.firebaseId, {
-        estado: "entregado",
-        adelanto: total,
-        debe: 0,
-      });
-
+    if (saving) return;
+    setError("");
+    setSaving(true);
+    try {
+      if (estado === "entregado") {
+        await updateClient(client.id, {
+          estado: "entregado",
+          adelanto: Number(client.total || 0),
+        });
+      } else {
+        await updateClientStatus(client.id, estado);
+      }
       onClose();
-      return;
+    } catch {
+      setError("No se pudo actualizar el estado. Intenta de nuevo.");
+    } finally {
+      setSaving(false);
     }
-
-    await updateClientStatus(client.firebaseId, estado);
-    onClose();
   };
 
   const handlePrint = () => {
@@ -307,6 +306,8 @@ export default function ClientModal({
                 if (editing) {
                   handleSave();
                 } else {
+                  setError("");
+                  setFormData(client);
                   setEditing(true);
                 }
               }}
@@ -325,7 +326,7 @@ export default function ClientModal({
               "
             >
               <FontAwesomeIcon icon={faPen} className="mr-2" />
-              {editing ? "Guardar" : "Editar"}
+              {editing ? (saving ? "Guardando..." : "Guardar") : "Editar"}
             </button>
           )}
 
@@ -352,7 +353,7 @@ export default function ClientModal({
 
           {client.estado === "listo" && (
             <button
-              onClick={() => setConfirmDelivery(true)}
+              onClick={() => { setError(""); setConfirmDelivery(true); }}
               className="
                 col-span-2
                 inline-flex
@@ -373,6 +374,7 @@ export default function ClientModal({
             </button>
           )}
         </div>
+        {error && !confirmDelivery && <p role="alert" className="mt-3 text-sm text-red-700">{error}</p>}
       </div>
 
       {confirmDelivery && (
@@ -409,10 +411,12 @@ export default function ClientModal({
             <p className="mt-2 text-sm font-semibold text-orange-600">
               El debe pasara a S/0 y el adelanto sera igual al total.
             </p>
+            {error && <p role="alert" className="mt-3 text-sm text-red-700">{error}</p>}
 
             <div className="mt-6 flex gap-3">
               <button
                 onClick={() => setConfirmDelivery(false)}
+                disabled={saving}
                 className="
                   flex-1
                   rounded-2xl
@@ -428,6 +432,7 @@ export default function ClientModal({
 
               <button
                 onClick={() => handleStatus("entregado")}
+                disabled={saving}
                 className="
                   flex-1
                   rounded-2xl
@@ -438,7 +443,7 @@ export default function ClientModal({
                   text-white
                 "
               >
-                Confirmar
+                {saving ? "Guardando..." : "Confirmar"}
               </button>
             </div>
           </div>

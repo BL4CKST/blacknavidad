@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -12,7 +12,7 @@ import {
   faXmark,
 } from "@fortawesome/free-solid-svg-icons";
 
-import { getClientByCode } from "../firebase/clients";
+import { getClientByCode } from "../supabase/clients";
 import PublicClientModal from "../components/PublicClientModal";
 
 const normalizeCode = (value = "") => {
@@ -32,17 +32,20 @@ export default function PublicHome({ onLogin }) {
   const [client, setClient] = useState(null);
   const [openModal, setOpenModal] = useState(false);
   const [openMenu, setOpenMenu] = useState(false);
+  const pending = useRef(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (pending.current) return;
 
     const code = normalizeCode(serviceId);
 
-    if (!code) {
+    if (!/^C-\d{1,19}$/.test(code)) {
       setError("Ingresa un código como C-8.");
       return;
     }
 
+    pending.current = true;
     setLoading(true);
     setError("");
 
@@ -58,10 +61,10 @@ export default function PublicHome({ onLogin }) {
 
       setClient(result);
       setOpenModal(true);
-    } catch (err) {
-      console.error(err);
-      setError(err.message);
+    } catch {
+      setError("No pudimos consultar el pedido. Revisa tu conexión e inténtalo de nuevo.");
     } finally {
+      pending.current = false;
       setLoading(false);
     }
   };
@@ -156,7 +159,7 @@ export default function PublicHome({ onLogin }) {
                   <div>
                     <div className="inline-flex items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50/90 px-4 py-2 text-[11px] font-black uppercase tracking-[0.18em] text-emerald-700 shadow-sm">
                       <FontAwesomeIcon icon={faClock} className="text-emerald-500" />
-                      Consulta en tiempo real
+                      Estado del pedido
                     </div>
                   
                   </div>
@@ -177,6 +180,7 @@ export default function PublicHome({ onLogin }) {
 
                       <input
                         id="service-code"
+                        disabled={loading}
                         type="text"
                         value={serviceId}
                         onChange={(e) => setServiceId(e.target.value)}

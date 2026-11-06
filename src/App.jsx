@@ -1,7 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 
-import { onAuthStateChanged, signOut } from "firebase/auth";
-
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import {
@@ -20,15 +18,14 @@ import Accounting from "./pages/Accounting";
 import PublicHome from "./pages/PublicHome";
 import DeleteClients from "./pages/DeleteClients";
 
-import { auth } from "./firebase/auth";
+import { isAdmin, supabase } from "./supabase/config";
 import {
   createClient,
-  deleteClient as deleteClientFirestore,
+  deleteClient as deleteOrder,
   editClient,
   listenClients,
-  updateClientState,
-  updateFuentes as updateFuentesFirestore,
-} from "./firebase/clients";
+  updateFuentes as saveFuentes,
+} from "./supabase/clients";
 
 const escapeHtml = (value = "") =>
   String(value)
@@ -319,28 +316,31 @@ export default function App() {
   const [page, setPage] = useState("home");
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userMenu, setUserMenu] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [listError, setListError] = useState("");
+  const isAuthenticated = isAdmin(currentUser);
 
   const menuRef = useRef(null);
+  const refreshClients = useRef(null);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setIsAuthenticated(!!user);
+    if (!supabase) return;
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      const user = session?.user ?? null;
       setCurrentUser(user);
       setLoading(false);
 
-      if (user) {
+      if (isAdmin(user)) {
         setView("admin");
-      } else if (view !== "login") {
-        setView("public");
+      } else {
+        setClients([]);
+        if (event === "SIGNED_OUT") setView((current) => current === "login" ? current : "public");
       }
     });
 
-    return unsubscribe;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => subscription.unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -360,12 +360,24 @@ export default function App() {
   useEffect(() => {
     if (!isAuthenticated) return;
 
-    const unsubscribe = listenClients((data) => {
+    const listener = listenClients((data) => {
       setClients(data);
-    });
-
-    return unsubscribe;
+      setListError("");
+    }, () => setListError("No se pudo cargar la lista de pedidos."));
+    refreshClients.current = listener.refresh;
+    return () => {
+      refreshClients.current = null;
+      listener.close();
+    };
   }, [isAuthenticated]);
+
+  if (!supabase) {
+    return (
+      <main className="grid min-h-[100svh] place-items-center bg-[#eef4fb] p-5 text-center">
+        <p role="alert">BlackNavidad aún no está conectado a Supabase.</p>
+      </main>
+    );
+  }
 
   if (loading) {
     return (
@@ -376,31 +388,37 @@ export default function App() {
   }
 
   const addClient = async (newClient) => {
-    await createClient(newClient);
+    const saved = await createClient(newClient);
+    void refreshClients.current?.();
     setPage("home");
-    printClientTicket(newClient);
+    printClientTicket(saved);
   };
 
-  const updateClientStatus = async (firebaseId, estado) => {
-    await updateClientState(firebaseId, estado);
+  const updateClient = async (id, data) => {
+    await editClient(id, data);
+    void refreshClients.current?.();
   };
 
-  const updateClient = async (firebaseId, data) => {
-    await editClient(firebaseId, data);
+  const updateClientStatus = (id, estado) => updateClient(id, { estado });
+
+  const deleteClient = async (id) => {
+    await deleteOrder(id);
+    void refreshClients.current?.();
   };
 
-  const deleteClient = async (firebaseId) => {
-    await deleteClientFirestore(firebaseId);
-  };
-
-  const updateFuentes = async (firebaseId, fuentesListas, totalFuentes) => {
-    await updateFuentesFirestore(firebaseId, fuentesListas, totalFuentes);
+  const updateFuentes = async (id, fuentesListas, totalFuentes) => {
+    await saveFuentes(id, fuentesListas, totalFuentes);
+    void refreshClients.current?.();
   };
 
   const handleLogout = async () => {
-    await signOut(auth);
+    const { error } = await supabase.auth.signOut({ scope: "local" });
+    if (error) {
+      setListError("No se pudo cerrar la sesión. Intenta de nuevo.");
+      return;
+    }
     setCurrentUser(null);
-    setIsAuthenticated(false);
+    setClients([]);
     setPage("home");
     setView("public");
     setUserMenu(false);
@@ -409,9 +427,7 @@ export default function App() {
   if (!isAuthenticated && view === "login") {
     return (
       <Login
-        setIsAuthenticated={setIsAuthenticated}
         onBackToPublic={() => setView("public")}
-        onLoginSuccess={() => setView("admin")}
       />
     );
   }
@@ -533,6 +549,14 @@ export default function App() {
           )}
 
           <section className="relative w-full min-w-0 rounded-3xl border border-[#cfd8e3] bg-[#f3f7fb] p-4 md:p-5">
+            {listError && (
+              <p role="alert" className="mb-4 text-sm text-red-700">
+                {listError}{" "}
+                <button type="button" className="underline" onClick={() => refreshClients.current?.()}>
+                  Recargar pedidos
+                </button>
+              </p>
+            )}
             {page === "home" && (
               <Home
                 clients={clients}
@@ -542,7 +566,7 @@ export default function App() {
               />
             )}
 
-            {page === "register" && <Register clients={clients} addClient={addClient} />}
+            {page === "register" && <Register addClient={addClient} />}
 
             {page === "fuentes" && (
               <InputSources clients={clients} updateFuentes={updateFuentes} />

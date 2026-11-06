@@ -49,10 +49,12 @@ export default function InputSources({
 
   const [confirm, setConfirm] =
     useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
 
   const handleAdd = (client) => {
     const current =
-      changes[client.firebaseId] ??
+      changes[client.id] ??
       client.fuentesListas ??
       0;
 
@@ -61,7 +63,7 @@ export default function InputSources({
 
     setChanges({
       ...changes,
-      [client.firebaseId]:
+      [client.id]:
         current + 1,
     });
   };
@@ -70,7 +72,7 @@ export default function InputSources({
     client
   ) => {
     const current =
-      changes[client.firebaseId] ??
+      changes[client.id] ??
       client.fuentesListas ??
       0;
 
@@ -78,34 +80,34 @@ export default function InputSources({
 
     setChanges({
       ...changes,
-      [client.firebaseId]:
+      [client.id]:
         current - 1,
     });
   };
 
-  const handleSave =
-    async () => {
+  const handleSave = async () => {
+    if (saving) return;
+    setSaving(true);
+    setSaveError("");
+    try {
       for (const client of sourceClients) {
-        const value =
-          changes[
-            client.firebaseId
-          ];
-
-        if (
-          value !== undefined
-        ) {
-          await updateFuentes(
-            client.firebaseId,
-            value,
-            client.fuentes
-          );
-        }
+        const value = changes[client.id];
+        if (value === undefined) continue;
+        await updateFuentes(client.id, value, client.fuentes);
+        setChanges((current) => {
+          const remaining = { ...current };
+          delete remaining[client.id];
+          return remaining;
+        });
       }
-
       setConfirm(false);
       setChanges({});
-    };
-
+    } catch {
+      setSaveError("No se pudieron guardar todos los cambios. Revisa los pendientes.");
+    } finally {
+      setSaving(false);
+    }
+  };
   return (
     <>
       {/* HEADER */}
@@ -162,7 +164,7 @@ export default function InputSources({
           (client) => {
             const listas =
               changes[
-                client.firebaseId
+                client.id
               ] ??
               client.fuentesListas ??
               0;
@@ -174,7 +176,7 @@ export default function InputSources({
             return (
               <div
                 key={
-                  client.firebaseId
+                  client.id
                 }
                 className={`
                   rounded-2xl
@@ -359,8 +361,10 @@ export default function InputSources({
               listas?
             </p>
 
+            {saveError && <p role="alert" className="mt-3 text-sm text-red-700">{saveError}</p>}
             <div className="mt-6 flex gap-3">
               <button
+                disabled={saving}
                 onClick={() =>
                   setConfirm(false)
                 }
@@ -378,6 +382,7 @@ export default function InputSources({
               </button>
 
               <button
+                disabled={saving}
                 onClick={
                   handleSave
                 }
@@ -391,7 +396,7 @@ export default function InputSources({
                   text-white
                 "
               >
-                Confirmar
+                {saving ? "Guardando..." : "Confirmar"}
               </button>
             </div>
           </div>

@@ -45,6 +45,7 @@ export default function DeleteClients({
   const [code, setCode] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   const selectedClient = useMemo(() => {
     const normalized = normalizeCode(code);
@@ -57,13 +58,19 @@ export default function DeleteClients({
   const hasSearch = normalizeCode(code).length > 0;
 
   const handleDelete = async () => {
-    if (!selectedClient) return;
+    if (!selectedClient || deleting) return;
 
     setDeleting(true);
-    await deleteClient(selectedClient.firebaseId);
-    setDeleting(false);
-    setConfirmDelete(false);
-    setCode("");
+    setDeleteError("");
+    try {
+      await deleteClient(selectedClient.id);
+      setConfirmDelete(false);
+      setCode("");
+    } catch {
+      setDeleteError("No se pudo eliminar el pedido. Intenta de nuevo.");
+    } finally {
+      setDeleting(false);
+    }
   };
 
   return (
@@ -191,6 +198,7 @@ export default function DeleteClients({
               Esta accion quitara el registro del panel.
             </p>
 
+            {deleteError && <p role="alert" className="mt-3 text-sm text-red-700">{deleteError}</p>}
             <div className="mt-6 flex gap-3">
               <button
                 onClick={() => setConfirmDelete(false)}

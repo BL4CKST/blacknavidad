@@ -1,7 +1,6 @@
-import { useMemo, useState } from "react";
+import { useRef, useState } from "react";
 
 export default function RegisterClient({
-  clients,
   addClient,
 }) {
   const [cliente, setCliente] =
@@ -14,18 +13,9 @@ export default function RegisterClient({
       whatsapp: "",
     });
 
-  // SIGUIENTE ID
-  const nextId = useMemo(() => {
-    const maxId = clients.reduce((max, client) => {
-      const value = Number(String(client?.id || "").replace(/\D/g, ""));
-
-      return Number.isFinite(value) && value > max ? value : max;
-    }, 0);
-
-    return maxId + 1;
-  }, [clients]);
-
-  const nextCode = `C-${nextId}`;
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const pending = useRef(false);
 
   const debe =
     Number(cliente.total || 0) -
@@ -38,11 +28,16 @@ export default function RegisterClient({
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    if (pending.current) return;
+    setError("");
+    if (debe < 0) {
+      setError("El adelanto no puede superar el total.");
+      return;
+    }
 
     const newClient = {
-      id: nextCode,
 
       nombre: cliente.nombre,
 
@@ -54,23 +49,21 @@ export default function RegisterClient({
 
       adelanto: Number(cliente.adelanto),
 
-      debe,
 
       whatsapp: cliente.whatsapp,
 
-      estado: "espera",
     };
 
-    addClient(newClient);
-
-    setCliente({
-      nombre: "",
-      contenido: "",
-      fuentes: "",
-      total: "",
-      adelanto: "",
-      whatsapp: "",
-    });
+    pending.current = true;
+    setSaving(true);
+    try {
+      await addClient(newClient);
+    } catch {
+      setError("No se pudo registrar el pedido. Revisa los datos e intenta de nuevo.");
+    } finally {
+      pending.current = false;
+      setSaving(false);
+    }
   };
 
   return (
@@ -89,11 +82,11 @@ export default function RegisterClient({
 
         <div className="min-w-[132px] rounded-2xl border border-blue-100 bg-blue-50 p-3 sm:min-w-[160px]">
           <p className="text-xs font-bold text-blue-600">
-            Siguiente ID
+            ID del pedido
           </p>
 
           <h3 className="mt-1 text-2xl font-black text-blue-700 sm:text-3xl">
-            {nextCode}
+            Automático
           </h3>
         </div>
 
@@ -313,8 +306,10 @@ export default function RegisterClient({
 
         {/* BOTON */}
         <div className="md:col-span-2 xl:col-span-3">
+          {error && <p role="alert" className="mb-3 text-center text-sm text-red-700">{error}</p>}
           <button
             type="submit"
+            disabled={saving}
             className="
               mx-auto
               flex
@@ -332,9 +327,10 @@ export default function RegisterClient({
               transition-all
               duration-300
               hover:bg-blue-700
+              disabled:opacity-60
             "
           >
-            Registrar Cliente
+            {saving ? "Registrando..." : "Registrar Cliente"}
           </button>
         </div>
       </form>

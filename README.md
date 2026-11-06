@@ -1,16 +1,44 @@
-# React + Vite
+# BlackNavidad
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Panel de pedidos y consulta pública de horneados con React, Vite y Supabase.
+La base arranca vacía: no se importan usuarios ni pedidos de Firebase.
 
-Currently, two official plugins are available:
+## Configurar Supabase
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+1. Abre **BlackNavidad** (referencia `vqdtilscrhrcqrwjlitz`), no Viper Shop.
+2. En **SQL Editor**, ejecuta [la migración inicial](supabase/migrations/20261105000000_blacknavidad.sql) una vez.
+   Mantén activa la Data API. No incluyas `private` en los esquemas expuestos.
+3. En **Authentication → Users → Add user**, crea y confirma tu usuario administrador.
+   Desactiva el registro público en los ajustes de Auth.
+4. Ejecuta este SQL con el correo de tu nuevo usuario. Debe devolver un correo:
 
-## React Compiler
+   ```sql
+   update auth.users
+   set raw_app_meta_data = coalesce(raw_app_meta_data, '{}'::jsonb)
+     || '{"blacknavidad_admin": true}'::jsonb
+   where email = 'tu-correo@example.com'
+   returning email;
+   ```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+   Si ya habías iniciado sesión, ciérrala y vuelve a entrar.
+5. En **Project Settings → API Keys**, usa la clave **Publishable**.
+   No uses `sb_secret_...` ni `service_role` en variables `VITE_`.
 
-## Expanding the ESLint configuration
+## Local y Vercel
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Configura estas dos variables en `.env.local` y en **Environment Variables**
+del proyecto **blacknavidad** de Vercel antes de desplegar:
+
+```dotenv
+VITE_SUPABASE_URL=https://vqdtilscrhrcqrwjlitz.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+```
+
+En local, ejecuta `npm ci` y `npm run dev`.
+
+## Verificación
+
+- Registra un pedido de prueba, guarda el progreso y márcalo como entregado.
+- En una ventana sin sesión, consulta su código. Solo debe mostrar estado y progreso.
+- [access.sql](supabase/tests/access.sql) valida los permisos en una base local desechable.
+- Verifica el despliegue nuevo antes de eliminar el anterior en Vercel.

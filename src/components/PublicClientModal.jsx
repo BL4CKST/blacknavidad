@@ -5,13 +5,10 @@ import {
   faCircleCheck,
   faClock,
   faFire,
-  faHandHoldingDollar,
   faTruckFast,
-  faUser,
   faXmark,
 } from "@fortawesome/free-solid-svg-icons";
 
-const formatMoney = (value) => `S/${Number(value || 0)}`;
 
 const getStatusConfig = (estado) => {
   if (estado === "listo") {
@@ -53,39 +50,6 @@ const getStatusConfig = (estado) => {
     iconSoft: "bg-blue-100 text-blue-600",
     progressTrack: "#dbeafe",
   };
-};
-
-const Field = ({ label, value, icon, tone = "blue", strong = false }) => {
-  const styles = {
-    blue: "bg-blue-50 text-blue-600",
-    orange: "bg-orange-50 text-orange-600",
-    green: "bg-emerald-50 text-emerald-600",
-    red: "bg-red-50 text-red-600",
-    amber: "bg-amber-50 text-amber-600",
-  };
-
-  return (
-    <div className="flex min-h-[68px] items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:min-h-[86px] sm:rounded-[22px] sm:p-4">
-      <div
-        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-base sm:h-12 sm:w-12 ${styles[tone]}`}
-      >
-        <FontAwesomeIcon icon={icon} />
-      </div>
-
-      <div className="min-w-0">
-        <p className="text-[9px] font-black uppercase tracking-[0.16em] text-slate-400 sm:text-[10px] sm:tracking-[0.18em]">
-          {label}
-        </p>
-        <p
-          className={`mt-1 break-words text-sm font-black sm:text-base ${
-            strong ? "text-orange-600 sm:text-xl" : "text-slate-950"
-          }`}
-        >
-          {value || "-"}
-        </p>
-      </div>
-    </div>
-  );
 };
 
 const ProgressCircle = ({
@@ -135,8 +99,6 @@ export default function PublicClientModal({ client, onClose }) {
   if (!client) return null;
 
   const status = getStatusConfig(client.estado);
-  const debe = Number(client.debe || 0);
-  const cancelado = debe <= 0;
   const fuentesListas = Number(client.fuentesListas || 0);
   const totalFuentes = Number(client.fuentes || 0);
   const safeTotal = Math.max(totalFuentes, 1);
@@ -287,26 +249,6 @@ export default function PublicClientModal({ client, onClose }) {
           </div>
         </div>
 
-        <div className="mt-3 grid gap-2.5 sm:mt-4 sm:grid-cols-2 sm:gap-3">
-          <Field label="Cliente" value={client.nombre} icon={faUser} tone="blue" />
-          <Field label="Contenido" value={client.contenido} icon={faFire} tone="orange" />
-          <Field
-            label="Fuentes"
-            value={`${client.fuentes ?? 0} fuentes`}
-            icon={faBoxOpen}
-            tone="green"
-          />
-          <Field label="Total" value={formatMoney(client.total)} icon={faHandHoldingDollar} tone="red" />
-          <Field label="Adelanto" value={formatMoney(client.adelanto)} icon={faHandHoldingDollar} tone="amber" />
-          <Field
-            label="Debe"
-            value={cancelado ? "CANCELADO" : formatMoney(debe)}
-            icon={faHandHoldingDollar}
-            tone="red"
-            strong
-          />
-        </div>
-
         <div className={`mt-3 hidden rounded-[26px] border p-5 sm:block ${status.soft}`}>
           <div className="mb-3 inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.18em]">
             <FontAwesomeIcon icon={faBoxOpen} />
@@ -348,7 +290,7 @@ export default function PublicClientModal({ client, onClose }) {
 
         <div className="mt-3 flex items-center justify-center gap-3 text-center text-[11px] font-bold text-slate-400">
           <span className="h-px w-16 bg-slate-200" />
-          Actualizado en tiempo real
+          Estado al momento de la consulta
           <span className="h-px w-16 bg-slate-200" />
         </div>
       </div>
